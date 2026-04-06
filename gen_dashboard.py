@@ -1,4 +1,9 @@
-<!DOCTYPE html>
+﻿# gen_dashboard.py — genera dashboard/index.html
+import os
+os.makedirs('dashboard', exist_ok=True)
+os.makedirs('docs', exist_ok=True)
+
+html = r'''<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -228,4 +233,10 @@ setInterval(()=>{
 loadState();
 </script>
 </body>
-</html>
+</html>'''
+
+with open('dashboard/index.html', 'w', encoding='utf-8') as f:
+    f.write(html)
+with open('docs/index.html', 'w', encoding='utf-8') as f:
+    f.write(html)
+print('Dashboard generated OK')
