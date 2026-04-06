@@ -1,0 +1,141 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>AURUM — Gold Trading System</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#d4a017;font-family:'Courier New',monospace;overflow-x:hidden}
+canvas{position:fixed;top:0;left:0;z-index:0;pointer-events:none}
+.content{position:relative;z-index:1;padding:40px 20px}
+.ascii{text-align:center;color:#f0c040;font-size:clamp(8px,1.2vw,14px);line-height:1.2;margin-bottom:30px;text-shadow:0 0 10px #d4a017}
+.subtitle{text-align:center;color:#888;font-size:13px;margin-bottom:40px;letter-spacing:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;max-width:1200px;margin:0 auto 40px}
+.card{background:#0a0a0a;border:1px solid #d4a01740;border-radius:8px;padding:20px}
+.card h3{color:#f0c040;font-size:13px;letter-spacing:2px;margin-bottom:15px;text-transform:uppercase}
+.metric{display:flex;justify-content:space-between;margin:8px 0;font-size:13px}
+.metric .val{color:#f0c040}
+.decision-badge{display:inline-block;padding:4px 16px;border-radius:4px;font-weight:bold;font-size:14px;letter-spacing:2px}
+.LONG{background:#1a3a1a;color:#4ade80;border:1px solid #4ade80}
+.SHORT{background:#3a1a1a;color:#f87171;border:1px solid #f87171}
+.STAY.OUT,.STAY_OUT{background:#1a1a1a;color:#888;border:1px solid #555}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{color:#888;text-align:left;padding:8px 4px;border-bottom:1px solid #222}
+td{padding:8px 4px;border-bottom:1px solid #111;color:#ccc}
+td.long{color:#4ade80} td.short{color:#f87171} td.out{color:#888}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+</style>
+</head>
+<body>
+<canvas id="rain"></canvas>
+<div class="content">
+<pre class="ascii">
+     █████╗ ██╗   ██╗██████╗ ██╗   ██╗███╗   ███╗
+    ██╔══██╗██║   ██║██╔══██╗██║   ██║████╗ ████║
+    ███████║██║   ██║██████╔╝██║   ██║██╔████╔██║
+    ██╔══██║██║   ██║██╔══██╗██║   ██║██║╚██╔╝██║
+    ██║  ██║╚██████╔╝██║  ██║╚██████╔╝██║ ╚═╝ ██║
+    ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝
+</pre>
+<p class="subtitle"><span class="status-dot"></span> &nbsp; GOLD SWING TRADING · MULTI-AGENT AI · PAPER TRADING</p>
+
+<div class="grid" id="metrics">
+<div class="card">
+  <h3>Last Signal</h3>
+  <div id="last-decision"><span class="decision-badge STAY_OUT">STAY OUT</span></div>
+  <div class="metric"><span>Price</span><span class="val" id="last-price">—</span></div>
+  <div class="metric"><span>Confidence</span><span class="val" id="last-conf">—</span></div>
+  <div class="metric"><span>Entry</span><span class="val" id="last-entry">—</span></div>
+  <div class="metric"><span>Stop loss</span><span class="val" id="last-sl">—</span></div>
+  <div class="metric"><span>Take profit</span><span class="val" id="last-tp">—</span></div>
+  <div class="metric"><span>R:R</span><span class="val" id="last-rr">—</span></div>
+</div>
+<div class="card">
+  <h3>Debate</h3>
+  <div class="metric"><span>Bull</span><span class="val" id="bull-conf">—</span></div>
+  <div class="metric"><span>Bear</span><span class="val" id="bear-conf">—</span></div>
+  <div class="metric"><span>Winner</span><span class="val" id="debate-winner">—</span></div>
+  <div class="metric"><span>Margin</span><span class="val" id="debate-margin">—</span></div>
+  <h3 style="margin-top:16px">Macro</h3>
+  <div class="metric"><span>Bias</span><span class="val" id="macro-bias">—</span></div>
+  <div class="metric"><span>Trend</span><span class="val" id="tech-trend">—</span></div>
+</div>
+<div class="card">
+  <h3>Portfolio</h3>
+  <div class="metric"><span>Capital</span><span class="val" id="capital">,000</span></div>
+  <div class="metric"><span>P&L total</span><span class="val" id="pnl"></span></div>
+  <div class="metric"><span>Win rate</span><span class="val" id="winrate">—</span></div>
+  <div class="metric"><span>Total cycles</span><span class="val" id="total">0</span></div>
+  <div class="metric"><span>Signals</span><span class="val" id="signals">0</span></div>
+</div>
+</div>
+
+<div style="max-width:1200px;margin:0 auto">
+<div class="card">
+  <h3>Signal History</h3>
+  <table>
+    <thead><tr><th>Time</th><th>Price</th><th>Decision</th><th>Confidence</th><th>R:R</th><th>Reason</th></tr></thead>
+    <tbody id="history-table"><tr><td colspan="6" style="text-align:center;color:#555">No signals yet</td></tr></tbody>
+  </table>
+</div>
+</div>
+</div>
+
+<script>
+// Dollar rain in gold
+const canvas = document.getElementById('rain');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+const cols = Math.floor(canvas.width / 18);
+const drops = Array(cols).fill(0).map(() => Math.random() * canvas.height / 18);
+const chars = '$¥€£₿XAU01';
+function drawRain() {
+  ctx.fillStyle = 'rgba(0,0,0,0.04)';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = '#d4a01788';
+  ctx.font = '14px monospace';
+  drops.forEach((y, i) => {
+    ctx.fillText(chars[Math.floor(Math.random()*chars.length)], i*18, y*18);
+    if (y*18 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+    drops[i] += 0.5;
+  });
+}
+setInterval(drawRain, 60);
+window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+
+// Load state from history.json
+async function loadState() {
+  try {
+    const r = await fetch('../state/history.json');
+    if (!r.ok) return;
+    const history = await r.json();
+    const total = history.length;
+    const signals = history.filter(h => h.decision !== 'STAY OUT').length;
+    document.getElementById('total').textContent = total;
+    document.getElementById('signals').textContent = signals;
+    if (history.length > 0) {
+      const last = history[history.length - 1];
+      document.getElementById('last-price').textContent = last.price ? '$'+last.price : '—';
+      document.getElementById('last-conf').textContent = last.confidence ? last.confidence+'%' : '—';
+      const cls = last.decision.replace(' ','_');
+      document.getElementById('last-decision').innerHTML = <span class="decision-badge "></span>;
+    }
+    // Table
+    const tbody = document.getElementById('history-table');
+    tbody.innerHTML = history.slice(-20).reverse().map(h => 
+      <tr>
+        <td></td>
+        <td></td>
+        <td class=""></td>
+        <td>%</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>).join('');
+  } catch(e) { console.log('State not loaded yet:', e); }
+}
+loadState();
+setInterval(loadState, 60000);
+</script>
+</body>
+</html>
