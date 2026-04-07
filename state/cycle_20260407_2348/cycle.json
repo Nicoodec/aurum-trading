@@ -1,0 +1,51 @@
+{
+  "ts": "2026-04-07T23:48:46.880039",
+  "price": 4706.34,
+  "change_pct": 1.23,
+  "decision": "STAY OUT",
+  "confidence": 0,
+  "reason": "R:R 0.12 below minimum 2.0",
+  "risk_plan": {
+    "valid": false,
+    "reason": "R:R 0.12 below minimum 2.0"
+  },
+  "mt5_ticket": null,
+  "debate_summary": {
+    "winner": "BULL",
+    "bull_conf": 69.0,
+    "bear_conf": 59.0,
+    "margin": 10.0,
+    "is_tie": false
+  },
+  "macro": {
+    "bias": "BULLISH",
+    "confidence": 65,
+    "drivers": [
+      "Weak dollar from Fed pause/halt rate hikes",
+      "Central bank demand amid geopolitical tensions"
+    ],
+    "risks": [
+      "Fed reaccelerates tightening if inflation overshoots"
+    ]
+  },
+  "technical": {
+    "trend": "UP",
+    "support": 4682.85,
+    "resistance": 4719.7,
+    "rsi_zone": "NEUTRAL",
+    "bias": "BULLISH"
+  },
+  "portfolio": {
+    "capital": 25000.0,
+    "total_pnl": 0,
+    "equity": 25000.0,
+    "total_trades": 0,
+    "open_positions": 0,
+    "win_rate": 0,
+    "wins": 0,
+    "losses": 0,
+    "avg_win": 0,
+    "avg_loss": 0,
+    "profit_factor": 0
+  }
+}
