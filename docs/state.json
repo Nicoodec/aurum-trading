@@ -1,0 +1,74 @@
+{
+  "latest": {
+    "ts": "2026-04-07T10:59:20.178350",
+    "price": 4684.205,
+    "change_pct": 0.76,
+    "decision": "STAY OUT",
+    "confidence": 0,
+    "reason": "Debate ended in tie",
+    "risk_plan": {
+      "valid": false,
+      "reason": "Debate ended in tie \u2014 STAY OUT"
+    },
+    "mt5_ticket": null,
+    "debate_summary": {
+      "winner": "TIE",
+      "bull_conf": 50.0,
+      "bear_conf": 50.0,
+      "margin": 0.0,
+      "is_tie": true
+    },
+    "macro": {
+      "bias": "BEARISH",
+      "confidence": 70,
+      "drivers": [
+        "Strong US dollar\u538b\u5236gold demand",
+        "High real yields compress gold's\u5438\u5f15\u529b"
+      ],
+      "risks": [
+        "Dollar weakness or rate cut speculation"
+      ]
+    },
+    "technical": {
+      "trend": "SIDEWAYS",
+      "support": 4637.36,
+      "resistance": 4731.05,
+      "rsi_zone": null,
+      "bias": "NEUTRAL"
+    },
+    "portfolio": {
+      "capital": 10000,
+      "total_pnl": 0,
+      "equity": 10000,
+      "total_trades": 0,
+      "open_positions": 0,
+      "win_rate": 0,
+      "wins": 0,
+      "losses": 0,
+      "avg_win": 0,
+      "avg_loss": 0,
+      "profit_factor": 0
+    }
+  },
+  "history": [
+    {
+      "ts": "20260407_1059",
+      "decision": "STAY OUT",
+      "price": 4684.205,
+      "confidence": 0
+    }
+  ],
+  "stats": {
+    "capital": 10000,
+    "total_pnl": 0,
+    "equity": 10000,
+    "total_trades": 0,
+    "open_positions": 0,
+    "win_rate": 0,
+    "wins": 0,
+    "losses": 0,
+    "avg_win": 0,
+    "avg_loss": 0,
+    "profit_factor": 0
+  }
+}

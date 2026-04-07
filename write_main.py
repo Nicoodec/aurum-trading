@@ -1,4 +1,7 @@
-# main.py
+﻿import os
+
+content = open('main.py', 'w', encoding='utf-8')
+content.write("""# main.py
 import json, os
 from datetime import datetime
 from agents.news_collector import collect as collect_news
@@ -152,3 +155,6 @@ def generate_dashboard(latest):
 
 if __name__ == '__main__':
     run_cycle()
+""")
+content.close()
+print('main.py written OK')
