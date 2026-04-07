@@ -1,8 +1,8 @@
 {
   "latest": {
-    "ts": "2026-04-07T15:46:06.410948",
-    "price": 4640.86,
-    "change_pct": -0.17,
+    "ts": "2026-04-07T16:41:47.721461",
+    "price": 4656.775,
+    "change_pct": 0.17,
     "decision": "STAY OUT",
     "confidence": 0,
     "reason": "Debate ended in tie",
@@ -31,8 +31,8 @@
     },
     "technical": {
       "trend": "SIDEWAYS",
-      "support": 4594.45,
-      "resistance": 4687.27,
+      "support": 4610.21,
+      "resistance": 4703.34,
       "rsi_zone": null,
       "bias": "NEUTRAL"
     },
@@ -67,6 +67,12 @@
       "ts": "20260407_1546",
       "decision": "STAY OUT",
       "price": 4640.86,
+      "confidence": 0
+    },
+    {
+      "ts": "20260407_1641",
+      "decision": "STAY OUT",
+      "price": 4656.775,
       "confidence": 0
     }
   ],
