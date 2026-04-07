@@ -1,8 +1,8 @@
 {
   "latest": {
-    "ts": "2026-04-07T10:59:20.178350",
-    "price": 4684.205,
-    "change_pct": 0.76,
+    "ts": "2026-04-07T15:35:40.040482",
+    "price": 4652.545,
+    "change_pct": 0.08,
     "decision": "STAY OUT",
     "confidence": 0,
     "reason": "Debate ended in tie",
@@ -19,20 +19,15 @@
       "is_tie": true
     },
     "macro": {
-      "bias": "BEARISH",
-      "confidence": 70,
-      "drivers": [
-        "Strong US dollar\u538b\u5236gold demand",
-        "High real yields compress gold's\u5438\u5f15\u529b"
-      ],
-      "risks": [
-        "Dollar weakness or rate cut speculation"
-      ]
+      "bias": "NEUTRAL",
+      "confidence": 40,
+      "drivers": [],
+      "risks": []
     },
     "technical": {
       "trend": "SIDEWAYS",
-      "support": 4637.36,
-      "resistance": 4731.05,
+      "support": 4606.02,
+      "resistance": 4699.07,
       "rsi_zone": null,
       "bias": "NEUTRAL"
     },
@@ -55,6 +50,12 @@
       "ts": "20260407_1059",
       "decision": "STAY OUT",
       "price": 4684.205,
+      "confidence": 0
+    },
+    {
+      "ts": "20260407_1535",
+      "decision": "STAY OUT",
+      "price": 4652.545,
       "confidence": 0
     }
   ],

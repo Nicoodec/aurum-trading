@@ -136,6 +136,25 @@ def run_cycle():
     folder = save_cycle(cycle_data)
     generate_dashboard(cycle_data)
     print('[SAVED]', folder)
+
+    # Multi-timeframe analysis
+    from agents.mtf_analyst import analyze as mtf_analyze
+    mtf = mtf_analyze(price)
+    print('      MTF confluence:', mtf.get('confluence'), '| Aligned:', mtf.get('aligned_timeframes'), '/3')
+    cycle_data['mtf'] = mtf
+
+    # Auto-close check
+    from agents.auto_close import run_auto_close
+    closed = run_auto_close(news)
+    if closed:
+        print('[auto_close] Closed', len(closed), 'positions')
+
+    # Telegram alert
+    try:
+        from utils.telegram_alerts import alert_decision
+        alert_decision(cycle_data)
+    except Exception as e:
+        print('[telegram] alert error:', e)
     sync('AURUM: ' + decision + ' @ ' + str(price.get('price')))
     return cycle_data
 

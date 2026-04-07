@@ -4,5 +4,11 @@
     "decision": "STAY OUT",
     "price": 4684.205,
     "confidence": 0
+  },
+  {
+    "ts": "20260407_1535",
+    "decision": "STAY OUT",
+    "price": 4652.545,
+    "confidence": 0
   }
 ]
