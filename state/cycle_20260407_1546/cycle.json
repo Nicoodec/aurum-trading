@@ -1,0 +1,51 @@
+{
+  "ts": "2026-04-07T15:46:06.410948",
+  "price": 4640.86,
+  "change_pct": -0.17,
+  "decision": "STAY OUT",
+  "confidence": 0,
+  "reason": "Debate ended in tie",
+  "risk_plan": {
+    "valid": false,
+    "reason": "Debate ended in tie \u2014 STAY OUT"
+  },
+  "mt5_ticket": null,
+  "debate_summary": {
+    "winner": "TIE",
+    "bull_conf": 55.0,
+    "bear_conf": 55.0,
+    "margin": 0.0,
+    "is_tie": true
+  },
+  "macro": {
+    "bias": "NEUTRAL",
+    "confidence": 52,
+    "drivers": [
+      "Price action",
+      "Historical high levels"
+    ],
+    "risks": [
+      "Limited news data"
+    ]
+  },
+  "technical": {
+    "trend": "SIDEWAYS",
+    "support": 4594.45,
+    "resistance": 4687.27,
+    "rsi_zone": null,
+    "bias": "NEUTRAL"
+  },
+  "portfolio": {
+    "capital": 25000.0,
+    "total_pnl": 0,
+    "equity": 25000.0,
+    "total_trades": 0,
+    "open_positions": 0,
+    "win_rate": 0,
+    "wins": 0,
+    "losses": 0,
+    "avg_win": 0,
+    "avg_loss": 0,
+    "profit_factor": 0
+  }
+}

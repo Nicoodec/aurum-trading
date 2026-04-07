@@ -1,8 +1,8 @@
 {
   "latest": {
-    "ts": "2026-04-07T15:35:40.040482",
-    "price": 4652.545,
-    "change_pct": 0.08,
+    "ts": "2026-04-07T15:46:06.410948",
+    "price": 4640.86,
+    "change_pct": -0.17,
     "decision": "STAY OUT",
     "confidence": 0,
     "reason": "Debate ended in tie",
@@ -13,28 +13,33 @@
     "mt5_ticket": null,
     "debate_summary": {
       "winner": "TIE",
-      "bull_conf": 50.0,
-      "bear_conf": 50.0,
+      "bull_conf": 55.0,
+      "bear_conf": 55.0,
       "margin": 0.0,
       "is_tie": true
     },
     "macro": {
       "bias": "NEUTRAL",
-      "confidence": 40,
-      "drivers": [],
-      "risks": []
+      "confidence": 52,
+      "drivers": [
+        "Price action",
+        "Historical high levels"
+      ],
+      "risks": [
+        "Limited news data"
+      ]
     },
     "technical": {
       "trend": "SIDEWAYS",
-      "support": 4606.02,
-      "resistance": 4699.07,
+      "support": 4594.45,
+      "resistance": 4687.27,
       "rsi_zone": null,
       "bias": "NEUTRAL"
     },
     "portfolio": {
-      "capital": 10000,
+      "capital": 25000.0,
       "total_pnl": 0,
-      "equity": 10000,
+      "equity": 25000.0,
       "total_trades": 0,
       "open_positions": 0,
       "win_rate": 0,
@@ -57,12 +62,18 @@
       "decision": "STAY OUT",
       "price": 4652.545,
       "confidence": 0
+    },
+    {
+      "ts": "20260407_1546",
+      "decision": "STAY OUT",
+      "price": 4640.86,
+      "confidence": 0
     }
   ],
   "stats": {
-    "capital": 10000,
+    "capital": 25000.0,
     "total_pnl": 0,
-    "equity": 10000,
+    "equity": 25000.0,
     "total_trades": 0,
     "open_positions": 0,
     "win_rate": 0,
