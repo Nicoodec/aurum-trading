@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "ticket": null,
+    "direction": "SHORT",
+    "entry": 4787.9,
+    "stop_loss": 4983.25,
+    "take_profit": 4397.19,
+    "risk_usd": 501.62,
+    "contracts": 0.03,
+    "rr": 2.0,
+    "opened_at": "2026-04-08T12:15:25.979362",
+    "status": "OPEN",
+    "pnl": null,
+    "closed_at": null,
+    "cycle_ts": "2026-04-08T12:15:25.978362"
+  }
+]
