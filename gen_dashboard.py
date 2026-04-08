@@ -20,9 +20,7 @@ def generate(latest=None, history=None, stats=None):
 body{background:#0a0800;color:#e8c84a;font-family:'Courier New',monospace;min-height:100vh}
 canvas{position:fixed;top:0;left:0;z-index:0;pointer-events:none;opacity:.2}
 .wrap{position:relative;z-index:1;max-width:1500px;margin:0 auto;padding:20px 16px}
-h1.logo{text-align:center;font-size:clamp(32px,6vw,72px);color:#f5d020;
-        letter-spacing:16px;text-shadow:0 0 30px #f5d02066, 0 0 60px #f5d02033;
-        font-family:'Courier New',monospace;font-weight:bold;margin-bottom:6px}
+pre.ascii{color:#f5d020;font-size:clamp(6px,1.2vw,14px);line-height:1.2;text-align:center;margin-bottom:6px;text-shadow:0 0 15px #f5d02044}
 .tag{text-align:center;color:#7a6010;font-size:10px;letter-spacing:6px;margin-bottom:20px;text-transform:uppercase}
 .sr{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:24px;flex-wrap:wrap}
 .dot{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:blink 2s infinite;box-shadow:0 0 6px #22c55e}
@@ -60,7 +58,14 @@ td.STAY_OUT{color:#4a3808}
 </style></head><body>
 <canvas id="c"></canvas>
 <div class="wrap">
-<h1 class="logo">AURUM</h1>
+<pre class="ascii">
+ █████╗ ██╗   ██╗██████╗ ██╗   ██╗███╗   ███╗
+██╔══██╗██║   ██║██╔══██╗██║   ██║████╗ ████║
+███████║██║   ██║██████╔╝██║   ██║██╔████╔██║
+██╔══██║██║   ██║██╔══██╗██║   ██║██║╚██╔╝██║
+██║  ██║╚██████╔╝██║  ██║╚██████╔╝██║ ╚═╝ ██║
+╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝
+</pre>
 <p class="tag">Multi-Agent Gold Swing Trading &middot; AI Powered</p>
 <div class="pbar"><div class="pfill" id="pf" style="width:100%"></div></div>
 <div id="upd">--</div>

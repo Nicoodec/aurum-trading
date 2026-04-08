@@ -85,22 +85,25 @@ def get_stats():
     gross_win  = sum(p['pnl'] for p in wins)
     gross_loss = abs(sum(p['pnl'] for p in losses))
     pf = round(gross_win / gross_loss, 2) if gross_loss > 0 else 0
-    # Intentar obtener balance real de MT5
+    capital_real = CAPITAL_INICIAL
+    equity_real  = CAPITAL_INICIAL + total_pnl
     try:
         mt5_bal, mt5_eq = _get_mt5_balance()
-        capital_real = mt5_bal
+        if mt5_bal and mt5_bal > 0:
+            capital_real = mt5_bal
+            equity_real  = mt5_eq
     except:
-        capital_real = CAPITAL_INICIAL
-    return 
-        'capital':         capital_real,
-        'total_pnl':       round(total_pnl, 2),
-        'equity':          round(capital_real + total_pnl, 2),
-        'total_trades':    len(closed),
-        'open_positions':  len(open_pos),
-        'win_rate':        round(win_rate, 1),
-        'wins':            len(wins),
-        'losses':          len(losses),
-        'avg_win':         round(avg_win, 2),
-        'avg_loss':        round(avg_loss, 2),
-        'profit_factor':   pf
+        pass
+    return {
+        'capital':        capital_real,
+        'total_pnl':      round(total_pnl, 2),
+        'equity':         round(equity_real, 2),
+        'total_trades':   len(closed),
+        'open_positions': len(open_pos),
+        'win_rate':       round(win_rate, 1),
+        'wins':           len(wins),
+        'losses':         len(losses),
+        'avg_win':        round(avg_win, 2),
+        'avg_loss':       round(avg_loss, 2),
+        'profit_factor':  pf
     }

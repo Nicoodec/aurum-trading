@@ -14,5 +14,21 @@
     "pnl": null,
     "closed_at": null,
     "cycle_ts": "2026-04-08T12:15:25.978362"
+  },
+  {
+    "id": 2,
+    "ticket": null,
+    "direction": "LONG",
+    "entry": 4724.51,
+    "stop_loss": 4638.57,
+    "take_profit": 4896.38,
+    "risk_usd": 501.61,
+    "contracts": 0.06,
+    "rr": 2.0,
+    "opened_at": "2026-04-08T22:52:37.023724",
+    "status": "OPEN",
+    "pnl": null,
+    "closed_at": null,
+    "cycle_ts": "2026-04-08T22:52:37.022714"
   }
 ]
