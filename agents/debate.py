@@ -64,8 +64,25 @@ def run_debate(macro_data, tech_data, price_data, news_data=None):
     t10  = fred.get("t10y") or 4.0
 
     # Bases informadas por datos reales
-    bull_base = 68 if (sent == "BULLISH_GOLD" or mb == "BULLISH") else (55 if mb == "NEUTRAL" else 46)
-    bear_base = 68 if (sent == "BEARISH_GOLD" or rsi > 70 or dxy > 105 or t10 > 4.5) else (55 if rsi > 60 else 48)
+    # Bull base: informado por sentimiento y macro
+    if sent == "BULLISH_GOLD" or mb == "BULLISH":
+        bull_base = 67
+    elif mb == "BEARISH":
+        bull_base = 46
+    else:
+        bull_base = 54
+
+    # Bear base: informado por RSI, DXY y yields - siempre diferente de bull_base
+    if sent == "BEARISH_GOLD" or (rsi > 72) or (dxy > 105 and t10 > 4.5):
+        bear_base = 71  # condiciones claramente bearish
+    elif rsi > 68 or dxy > 103:
+        bear_base = 63  # condiciones moderadamente bearish
+    else:
+        bear_base = 49  # condiciones neutrales-bullish
+
+    # Garantizar que nunca sean identicos
+    if bull_base == bear_base:
+        bear_base += 3
 
     hs, bls, brs = [], [], []
 

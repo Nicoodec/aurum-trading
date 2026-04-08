@@ -3,6 +3,19 @@ import json, os
 from datetime import datetime
 from config import STATE_DIR
 
+def _get_mt5_balance():
+    try:
+        import MetaTrader5 as mt5
+        if mt5.initialize():
+            info = mt5.account_info()
+            if info and info.balance > 0:
+                b = info.balance
+                e = info.equity
+                mt5.shutdown()
+                return b, e
+    except: pass
+    return 25000.0, 25000.0
+
 CAPITAL_INICIAL = 25000.0
 POSITIONS_FILE  = os.path.join(STATE_DIR, 'positions.json')
 
@@ -72,10 +85,16 @@ def get_stats():
     gross_win  = sum(p['pnl'] for p in wins)
     gross_loss = abs(sum(p['pnl'] for p in losses))
     pf = round(gross_win / gross_loss, 2) if gross_loss > 0 else 0
-    return {
-        'capital':         CAPITAL_INICIAL,
+    # Intentar obtener balance real de MT5
+    try:
+        mt5_bal, mt5_eq = _get_mt5_balance()
+        capital_real = mt5_bal
+    except:
+        capital_real = CAPITAL_INICIAL
+    return 
+        'capital':         capital_real,
         'total_pnl':       round(total_pnl, 2),
-        'equity':          round(CAPITAL_INICIAL + total_pnl, 2),
+        'equity':          round(capital_real + total_pnl, 2),
         'total_trades':    len(closed),
         'open_positions':  len(open_pos),
         'win_rate':        round(win_rate, 1),

@@ -168,6 +168,7 @@ def run_cycle():
             "bias":       tech.get("bias"),
         },
         "portfolio": stats,
+        "ftmo_status": ftmo_check.get("ftmo_status", {}) if ftmo_check else {},
     }
 
     if decision in ("LONG", "SHORT") and risk.get("valid"):
