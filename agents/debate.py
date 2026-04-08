@@ -1,33 +1,23 @@
 from utils.ollama_client import chat, extract_confidence
-from config import MODEL_HEAVY, DEBATE_ROUNDS
+from config import MODEL_HEAVY
 
-BULL_SYSTEM = """You are a veteran gold bull trader with 20 years experience on XAU/USD.
-Your job: build the STRONGEST possible case for gold RISING in the next 24-48 hours.
-Use specific data provided. Be decisive and concrete.
-Structure your argument:
-1. Primary catalyst driving gold up RIGHT NOW
-2. Technical confirmation from the price data given
-3. Why the bears are wrong
-4. Specific price target
+BULL_SYSTEM = """You are a veteran gold bull trader. XAU/USD specialist.
+Build the STRONGEST case for gold RISING in 24-48h.
+Use ALL data provided: price, RSI, trend, news headlines.
+Be specific — reference actual prices and news.
+Structure: 1) Primary catalyst  2) Technical confirmation  3) Why bears wrong  4) Price target
+FINAL LINE MUST BE EXACTLY: Confidence: XX%
+(honest number 45-85, not 50 unless truly neutral)"""
 
-CRITICAL: Your final line MUST be exactly:
-Confidence: XX%
-(where XX is your honest confidence level between 45 and 85)"""
+BEAR_SYSTEM = """You are a veteran gold bear trader. XAU/USD specialist.
+Build the STRONGEST case for gold FALLING in 24-48h.
+Use ALL data provided: price, RSI, trend, news headlines.
+Be specific — reference actual prices and news.
+Structure: 1) Primary catalyst  2) Technical breakdown  3) Why bulls wrong  4) Downside target
+FINAL LINE MUST BE EXACTLY: Confidence: XX%
+(honest number 45-85, not 50 unless truly neutral)"""
 
-BEAR_SYSTEM = """You are a veteran gold bear trader with 20 years experience on XAU/USD.
-Your job: build the STRONGEST possible case for gold FALLING in the next 24-48 hours.
-Use specific data provided. Be decisive and concrete.
-Structure your argument:
-1. Primary catalyst driving gold down RIGHT NOW
-2. Technical breakdown signals from the price data given
-3. Why the bulls are wrong
-4. Specific downside target
-
-CRITICAL: Your final line MUST be exactly:
-Confidence: XX%
-(where XX is your honest confidence level between 45 and 85)"""
-
-def _ctx(macro, tech, price, news):
+def _build_context(macro, tech, price, news):
     p   = price.get("price", 0)
     chg = price.get("change_pct", 0)
     h   = price.get("high", p)
@@ -36,79 +26,71 @@ def _ctx(macro, tech, price, news):
     s   = tech.get("support", 0)
     r   = tech.get("resistance", 0)
     s20 = tech.get("sma20", "N/A")
-    ni  = news.get("news_items", [])
-    top_news = [x["title"] for x in ni[:5]] if ni else ["No news available"]
+    ni  = news.get("news_items", []) if news else []
+    top = [x["title"] for x in ni[:8]]
+    sent = news.get("sentiment", "NEUTRAL") if news else "NEUTRAL"
+    summ = news.get("summary", "") if news else ""
+    events = news.get("key_events", []) if news else []
     return (
-        "=== PRICE DATA ===\n"
-        "XAU/USD: $" + str(p) + " | Change: " + str(chg) + "% | Range: $" + str(l) + "-$" + str(h) + "\n"
-        "\n=== TECHNICAL INDICATORS (CALCULATED) ===\n"
+        "=== LIVE MARKET DATA ===\n"
+        "XAU/USD NOW: $" + str(p) + "\n"
+        "Today change: " + str(chg) + "% | High: $" + str(h) + " | Low: $" + str(l) + "\n"
+        "\n=== CALCULATED TECHNICAL INDICATORS ===\n"
         "RSI(14): " + str(rsi) + " | SMA20: $" + str(s20) + "\n"
-        "Support: $" + str(s) + " | Resistance: $" + str(r) + "\n"
-        "20-day trend: " + str(tech.get("trend", "N/A")) + " | Bias: " + str(tech.get("bias", "N/A")) + "\n"
+        "Key support: $" + str(s) + " | Key resistance: $" + str(r) + "\n"
+        "20-day trend: " + str(tech.get("trend","N/A")) + " | Technical bias: " + str(tech.get("bias","N/A")) + "\n"
         "\n=== MACRO CONTEXT ===\n"
-        "Macro bias: " + str(macro.get("macro_bias", "N/A")) + " (" + str(macro.get("confidence", 0)) + "%)\n"
-        "Key drivers: " + str(macro.get("key_drivers", [])) + "\n"
-        "Analysis: " + str(macro.get("analysis", "")) + "\n"
-        "\n=== LATEST NEWS (use these!) ===\n"
-        + "\n".join(["- " + n for n in top_news])
+        "Macro bias: " + str(macro.get("macro_bias","N/A")) + " (" + str(macro.get("confidence",0)) + "%)\n"
+        "Key drivers: " + ", ".join(macro.get("key_drivers", [])) + "\n"
+        "Macro analysis: " + str(macro.get("analysis","")) + "\n"
+        "\n=== BREAKING NEWS (USE THESE IN YOUR ARGUMENT) ===\n"
+        "Overall news sentiment for gold: " + sent + "\n"
+        "Summary: " + summ + "\n"
+        "Key events: " + ", ".join(events[:5]) + "\n"
+        "Headlines:\n" + "\n".join(["- " + n for n in top])
     )
 
 def run_debate(macro_data, tech_data, price_data, news_data=None):
     if news_data is None:
         news_data = {}
-    context = _ctx(macro_data, tech_data, price_data, news_data)
+    ctx = _build_context(macro_data, tech_data, price_data, news_data)
     history, bull_scores, bear_scores = [], [], []
 
-    # Round 1
-    bull_msg = chat(
-        context + "\n\nMake your BULL case. Be specific. Last line must be: Confidence: XX%",
-        model=MODEL_HEAVY, system=BULL_SYSTEM, temperature=0.75
-    )
-    bear_msg = chat(
-        context + "\n\nMake your BEAR case. Be specific. Last line must be: Confidence: XX%",
-        model=MODEL_HEAVY, system=BEAR_SYSTEM, temperature=0.75
-    )
-    bs1, br1 = extract_confidence(bull_msg), extract_confidence(bear_msg)
+    bull1 = chat(ctx + "\n\nMake your BULL case. Reference the actual news above. Final line: Confidence: XX%",
+                 model=MODEL_HEAVY, system=BULL_SYSTEM, temperature=0.75)
+    bear1 = chat(ctx + "\n\nMake your BEAR case. Reference the actual news above. Final line: Confidence: XX%",
+                 model=MODEL_HEAVY, system=BEAR_SYSTEM, temperature=0.75)
+    bs1, br1 = extract_confidence(bull1), extract_confidence(bear1)
     bull_scores.append(bs1); bear_scores.append(br1)
-    history.append({"round": 1, "bull": bull_msg, "bear": bear_msg})
+    history.append({"round": 1, "bull": bull1, "bear": bear1})
     print("      Round 1 -- Bull: " + str(bs1) + "% | Bear: " + str(br1) + "%")
 
-    # Round 2
-    bull_msg2 = chat(
-        context + "\n\nBEAR argued:\n" + bear_msg[-600:] +
-        "\n\nDIRECTLY REFUTE the bear. Strengthen your bull case with NEW points. Last line: Confidence: XX%",
-        model=MODEL_HEAVY, system=BULL_SYSTEM, temperature=0.7
-    )
-    bear_msg2 = chat(
-        context + "\n\nBULL argued:\n" + bull_msg[-600:] +
-        "\n\nDIRECTLY REFUTE the bull. Strengthen your bear case with NEW points. Last line: Confidence: XX%",
-        model=MODEL_HEAVY, system=BEAR_SYSTEM, temperature=0.7
-    )
-    bs2, br2 = extract_confidence(bull_msg2), extract_confidence(bear_msg2)
+    bull2 = chat(ctx + "\n\nBEAR ARGUED:\n" + bear1[-500:] +
+                 "\n\nRefute the bear directly. New arguments only. Final line: Confidence: XX%",
+                 model=MODEL_HEAVY, system=BULL_SYSTEM, temperature=0.7)
+    bear2 = chat(ctx + "\n\nBULL ARGUED:\n" + bull1[-500:] +
+                 "\n\nRefute the bull directly. New arguments only. Final line: Confidence: XX%",
+                 model=MODEL_HEAVY, system=BEAR_SYSTEM, temperature=0.7)
+    bs2, br2 = extract_confidence(bull2), extract_confidence(bear2)
     bull_scores.append(bs2); bear_scores.append(br2)
-    history.append({"round": 2, "bull": bull_msg2, "bear": bear_msg2})
+    history.append({"round": 2, "bull": bull2, "bear": bear2})
     print("      Round 2 -- Bull: " + str(bs2) + "% | Bear: " + str(br2) + "%")
 
-    # Round 3 - final verdict
-    bull_msg3 = chat(
-        context + "\n\nFINAL ROUND. Bear's best argument was:\n" + bear_msg2[-400:] +
-        "\n\nGive your FINAL bull verdict. Be decisive. Last line: Confidence: XX%",
-        model=MODEL_HEAVY, system=BULL_SYSTEM, temperature=0.65
-    )
-    bear_msg3 = chat(
-        context + "\n\nFINAL ROUND. Bull's best argument was:\n" + bull_msg2[-400:] +
-        "\n\nGive your FINAL bear verdict. Be decisive. Last line: Confidence: XX%",
-        model=MODEL_HEAVY, system=BEAR_SYSTEM, temperature=0.65
-    )
-    bs3, br3 = extract_confidence(bull_msg3), extract_confidence(bear_msg3)
+    bull3 = chat(ctx + "\n\nFINAL ROUND. Best bear argument: " + bear2[-300:] +
+                 "\n\nFinal verdict. Be decisive. Commit to a direction. Final line: Confidence: XX%",
+                 model=MODEL_HEAVY, system=BULL_SYSTEM, temperature=0.65)
+    bear3 = chat(ctx + "\n\nFINAL ROUND. Best bull argument: " + bull2[-300:] +
+                 "\n\nFinal verdict. Be decisive. Commit to a direction. Final line: Confidence: XX%",
+                 model=MODEL_HEAVY, system=BEAR_SYSTEM, temperature=0.65)
+    bs3, br3 = extract_confidence(bull3), extract_confidence(bear3)
     bull_scores.append(bs3); bear_scores.append(br3)
-    history.append({"round": 3, "bull": bull_msg3, "bear": bear_msg3})
+    history.append({"round": 3, "bull": bull3, "bear": bear3})
     print("      Round 3 -- Bull: " + str(bs3) + "% | Bear: " + str(br3) + "%")
 
     avg_bull = round(sum(bull_scores) / 3, 1)
     avg_bear = round(sum(bear_scores) / 3, 1)
     margin   = round(abs(avg_bull - avg_bear), 1)
-    is_tie   = margin < 10
+    is_tie   = margin < 8   # reducido de 10 a 8
     winner   = "TIE" if is_tie else ("BULL" if avg_bull > avg_bear else "BEAR")
 
     return {
@@ -118,7 +100,7 @@ def run_debate(macro_data, tech_data, price_data, news_data=None):
         "margin":              margin,
         "winner":              winner,
         "is_tie":              is_tie,
-        "final_bull":          bull_msg3,
-        "final_bear":          bear_msg3,
-        "round_scores":        list(zip(bull_scores, bear_scores))
+        "final_bull":          bull3,
+        "final_bear":          bear3,
+        "round_scores":        list(zip(bull_scores, bear_scores)),
     }
