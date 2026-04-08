@@ -1,0 +1,51 @@
+{
+  "ts": "2026-04-08T11:27:10.368734",
+  "price": 4796.635,
+  "change_pct": 1.92,
+  "decision": "STAY OUT",
+  "confidence": 0,
+  "reason": "Debate ended in tie",
+  "risk_plan": {
+    "valid": false,
+    "reason": "Debate ended in tie -- STAY OUT"
+  },
+  "mt5_ticket": null,
+  "debate_summary": {
+    "winner": "TIE",
+    "bull_conf": 56.7,
+    "bear_conf": 57.0,
+    "margin": 0.3,
+    "is_tie": true
+  },
+  "macro": {
+    "bias": "BULLISH",
+    "confidence": 65,
+    "drivers": [
+      "Geopolitical tensions from US-Iran ceasefire uncertainty",
+      "Rising inflation risk and fuel prices"
+    ],
+    "risks": [
+      "Potential Fed rate hikes if inflation persists"
+    ]
+  },
+  "technical": {
+    "trend": "UP",
+    "support": 4719.7,
+    "resistance": 4983.25,
+    "rsi_zone": "OVERBOUGHT",
+    "bias": "BULLISH"
+  },
+  "portfolio": {
+    "capital": 25000.0,
+    "total_pnl": 0,
+    "equity": 25000.0,
+    "total_trades": 0,
+    "open_positions": 0,
+    "win_rate": 0,
+    "wins": 0,
+    "losses": 0,
+    "avg_win": 0,
+    "avg_loss": 0,
+    "profit_factor": 0
+  }
+}
