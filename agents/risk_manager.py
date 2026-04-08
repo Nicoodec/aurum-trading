@@ -55,7 +55,7 @@ def calculate(debate_result, tech_data, price_data, account_balance=None):
         return {'valid': False, 'reason': f'SL distance too small: '}
 
     rr = tp_distance / sl_distance
-    if rr < MIN_RR:
+    if round(rr, 4) < MIN_RR:
         return {'valid': False, 'reason': f'R:R {rr:.2f} below minimum {MIN_RR} even after adjustment'}
 
     # Kelly Criterion

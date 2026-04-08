@@ -1,0 +1,51 @@
+{
+  "ts": "2026-04-08T01:18:48.297633",
+  "price": 4810.835,
+  "change_pct": 2.22,
+  "decision": "STAY OUT",
+  "confidence": 0,
+  "reason": "R:R 2.00 below minimum 2.0 even after adjustment",
+  "risk_plan": {
+    "valid": false,
+    "reason": "R:R 2.00 below minimum 2.0 even after adjustment"
+  },
+  "mt5_ticket": null,
+  "debate_summary": {
+    "winner": "BEAR",
+    "bull_conf": 57.0,
+    "bear_conf": 70.0,
+    "margin": 13.0,
+    "is_tie": false
+  },
+  "macro": {
+    "bias": "BULLISH",
+    "confidence": 52,
+    "drivers": [
+      "Price action",
+      "Historical high levels"
+    ],
+    "risks": [
+      "Limited news data"
+    ]
+  },
+  "technical": {
+    "trend": "UP",
+    "support": 4719.7,
+    "resistance": 4983.25,
+    "rsi_zone": "OVERBOUGHT",
+    "bias": "BULLISH"
+  },
+  "portfolio": {
+    "capital": 25000.0,
+    "total_pnl": 0,
+    "equity": 25000.0,
+    "total_trades": 0,
+    "open_positions": 0,
+    "win_rate": 0,
+    "wins": 0,
+    "losses": 0,
+    "avg_win": 0,
+    "avg_loss": 0,
+    "profit_factor": 0
+  }
+}
