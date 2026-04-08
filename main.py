@@ -1,19 +1,22 @@
-import json, os
+﻿import json, os
 from datetime import datetime
-from agents.news_collector import collect as collect_news
+from agents.news_collector import collect as collect_rss
+from agents.news_api import fetch_newsapi
+from agents.news_gpt import analyze_news_gpt
 from agents.price_feed import get_technical_data
+from agents.price_history_av import fetch_ohlcv
 from agents.macro_analyst import analyze as macro_analyze
 from agents.technical_analyst import analyze as tech_analyze
 from agents.debate import run_debate
 from agents.risk_manager import calculate as risk_calc
 from agents.arbitrator import decide
 from agents.ftmo_validator import validate_before_trade
-from utils.state_manager import save_cycle
+from utils.fred_data import get_all as fred_get_all
+from utils.state_manager import save_cycle, load_history
 from utils.github_sync import sync
+from gen_dashboard import generate as gen_html
 from portfolio import add_position, get_stats
 from config import MAX_POSITIONS
-from gen_dashboard import generate as gen_html
-from utils.state_manager import load_history
 
 MT5_ENABLED  = True
 MT5_LOGIN    = 1513020113
@@ -23,42 +26,59 @@ MT5_SERVER   = "FTMO-Demo"
 def run_cycle():
     print()
     print("=" * 52)
-    print("AURUM CYCLE -- " + datetime.now().strftime("%Y-%m-%d %H:%M"))
+    print("AURUM CYCLE --", datetime.now().strftime("%Y-%m-%d %H:%M"))
     print("=" * 52)
 
     stats = get_stats()
-    print("[portfolio] Equity: $" + str(stats["equity"]) + " | Open: " + str(stats["open_positions"]) + "/" + str(MAX_POSITIONS))
+    print("[portfolio] Equity:$" + str(stats["equity"]) + " Open:" + str(stats["open_positions"]) + "/" + str(MAX_POSITIONS))
     if stats["open_positions"] >= MAX_POSITIONS:
-        print("[portfolio] MAX positions -- skipping")
+        print("[portfolio] MAX positions reached")
         return None
 
-    print("[1/7] Collecting news...")
-    news = collect_news()
-    ni = news.get("news_items", [])
-    print("      Got " + str(len(ni)) + " news items | Sentiment: " + str(news.get("sentiment","NEUTRAL")))
-    for n in ni[:5]:
-        print("      >> [" + n["source"] + "] " + n["title"][:75])
+    print("[1/8] Alpha Vantage OHLCV...")
+    try:
+        fetch_ohlcv()
+    except Exception as e:
+        print("      AV:", e)
 
-    print("[2/7] Getting price feed...")
+    print("[2/8] Collecting news...")
+    rss   = collect_rss()
+    api   = fetch_newsapi()
+    items = list({i["title"]: i for i in rss.get("news_items", []) + api}.values())[:30]
+    gpt   = analyze_news_gpt(items)
+    if gpt:
+        news = gpt
+        news["news_items"] = items
+        print("      [GPT] Sentiment:" + str(gpt.get("sentiment")) + " conf:" + str(gpt.get("confidence")) + "%")
+    else:
+        news = rss
+        news["news_items"] = items
+    print("      Total:" + str(len(items)) + " Sentiment:" + str(news.get("sentiment")))
+    for i in items[:5]:
+        print("      >> [" + i["source"] + "] " + i["title"][:70])
+
+    print("[3/8] FRED macro data...")
+    fred = fred_get_all()
+    print("      " + str(fred.get("summary", "unavailable")))
+
+    print("[4/8] Price feed...")
     price = get_technical_data()
-    print("      XAU/USD: " + str(price.get("price")) + " | Change: " + str(price.get("change_pct")) + "% | H:" + str(price.get("high")) + " L:" + str(price.get("low")))
+    print("      XAU/USD:" + str(price.get("price")) + " Chg:" + str(price.get("change_pct")) + "% H:" + str(price.get("high")) + " L:" + str(price.get("low")))
 
-    print("[3/7] Macro analysis...")
+    print("[5/8] Macro analysis...")
+    news["fred"] = fred
     macro = macro_analyze(news, price)
-    print("      Bias: " + str(macro.get("macro_bias")) + " (" + str(macro.get("confidence")) + "%)")
-    print("      Drivers: " + str(macro.get("key_drivers", [])))
+    print("      Bias:" + str(macro.get("macro_bias")) + " (" + str(macro.get("confidence")) + "%) DXY=" + str(fred.get("dxy")) + " 10Y=" + str(fred.get("t10y")) + "%")
 
-    print("[4/7] Technical analysis...")
+    print("[6/8] Technical analysis...")
     tech = tech_analyze(price)
-    print("      Trend: " + str(tech.get("trend")) + " | RSI: " + str(tech.get("rsi_value")) + " | S:" + str(tech.get("support")) + " R:" + str(tech.get("resistance")))
+    print("      Trend:" + str(tech.get("trend")) + " RSI:" + str(tech.get("rsi_value")) + " S:" + str(tech.get("support")) + " R:" + str(tech.get("resistance")))
 
-    print("[5/7] Running debate 3 rounds...")
+    print("[7/8] Debate 3 rounds...")
     debate = run_debate(macro, tech, price, news)
-    bull = debate.get("avg_bull_confidence")
-    bear = debate.get("avg_bear_confidence")
-    print("      Winner: " + str(debate.get("winner")) + " | Bull: " + str(bull) + "% | Bear: " + str(bear) + "% | Margin: " + str(debate.get("margin")) + "pts")
+    print("      Winner:" + str(debate.get("winner")) + " Bull:" + str(debate.get("avg_bull_confidence")) + "% Bear:" + str(debate.get("avg_bear_confidence")) + "% Margin:" + str(debate.get("margin")) + "pts")
 
-    print("[6/7] Risk management...")
+    print("[8/8] Risk + Arbitrator...")
     account_info = None
     if MT5_ENABLED:
         try:
@@ -67,45 +87,45 @@ def run_cycle():
                 account_info = get_account_summary()
                 disconnect()
         except Exception as e:
-            print("      [MT5] account error: " + str(e))
+            print("      [MT5]", e)
 
     risk = risk_calc(debate, tech, price, account_info.get("balance") if account_info else None)
     if risk.get("valid"):
-        print("      Dir: " + str(risk.get("direction")) + " | R:R: " + str(risk.get("risk_reward")) + " | Risk: $" + str(risk.get("risk_usd")) + " | Lots: " + str(risk.get("contracts")))
+        print("      Risk:" + str(risk.get("direction")) + " RR=" + str(risk.get("risk_reward")) + " $" + str(risk.get("risk_usd")) + " Lots=" + str(risk.get("contracts")))
     else:
-        print("      INVALID: " + str(risk.get("reason")))
+        print("      Risk INVALID:" + str(risk.get("reason")))
 
     ftmo_check = validate_before_trade(risk, account_info)
     if not ftmo_check["approved"]:
-        print("      [FTMO] BLOCKED: " + str(ftmo_check["reason"]))
+        print("      [FTMO] BLOCKED:" + str(ftmo_check["reason"]))
         risk["valid"] = False
         risk["reason"] = ftmo_check["reason"]
     else:
         fs = ftmo_check["ftmo_status"]
-        print("      [FTMO] OK | Daily: $" + str(fs["daily_remaining"]) + " | Total: $" + str(fs["total_remaining"]))
+        print("      [FTMO] OK Daily:$" + str(fs["daily_remaining"]) + " Total:$" + str(fs["total_remaining"]))
+        for w in ftmo_check.get("warnings", []):
+            print("      " + w)
 
-    print("[7/7] Arbitrator deciding...")
-    final = decide(debate, risk, macro, news)
+    final    = decide(debate, risk, macro, news)
     decision = final.get("decision")
     print()
-    print(">>> DECISION: " + str(decision) + " (conf: " + str(final.get("confidence")) + "%)")
+    print(">>> DECISION: " + decision + " conf:" + str(final.get("confidence")) + "%")
     print("    " + str(final.get("reason")))
 
     ticket = None
     if risk.get("valid") and decision in ("LONG", "SHORT"):
-        print("    Entry: " + str(risk.get("entry")) + " | SL: " + str(risk.get("stop_loss")) + " | TP: " + str(risk.get("take_profit")) + " | Lots: " + str(risk.get("contracts")))
+        print("    Entry:" + str(risk["entry"]) + " SL:" + str(risk["stop_loss"]) + " TP:" + str(risk["take_profit"]) + " Lots:" + str(risk["contracts"]))
         if MT5_ENABLED:
             try:
                 from agents.mt5_broker import connect, open_trade, disconnect
                 if connect(MT5_LOGIN, MT5_PASSWORD, MT5_SERVER):
-                    lot_size = max(0.01, round(risk.get("contracts", 0.01), 2))
-                    result = open_trade(decision, lot_size, risk["stop_loss"], risk["take_profit"])
-                    if result:
-                        ticket = result["ticket"]
+                    r = open_trade(decision, max(0.01, round(risk["contracts"], 2)), risk["stop_loss"], risk["take_profit"])
+                    if r:
+                        ticket = r["ticket"]
                         print("    [MT5] ORDER PLACED ticket=" + str(ticket))
                     disconnect()
             except Exception as e:
-                print("    [MT5] Error: " + str(e))
+                print("    [MT5] Error:", e)
 
     cycle_data = {
         "ts":         datetime.now().isoformat(),
@@ -116,20 +136,19 @@ def run_cycle():
         "reason":     final.get("reason"),
         "risk_plan":  risk,
         "mt5_ticket": ticket,
-        "news_items": ni,
+        "news_items": items[:10],
+        "fred":       fred,
         "debate_summary": {
             "winner":    debate.get("winner"),
             "bull_conf": debate.get("avg_bull_confidence"),
             "bear_conf": debate.get("avg_bear_confidence"),
             "margin":    debate.get("margin"),
             "is_tie":    debate.get("is_tie"),
-            "rounds":    debate.get("round_scores", []),
         },
         "macro": {
             "bias":       macro.get("macro_bias"),
             "confidence": macro.get("confidence"),
             "drivers":    macro.get("key_drivers"),
-            "risks":      macro.get("risks"),
             "analysis":   macro.get("analysis"),
         },
         "technical": {
@@ -149,17 +168,16 @@ def run_cycle():
         print("    [portfolio] Position recorded")
 
     folder = save_cycle(cycle_data)
-    history = load_history()
-    gen_html(latest=cycle_data, history=history, stats=stats)
-    print("[SAVED] " + str(folder))
+    gen_html(latest=cycle_data, history=load_history(), stats=stats)
+    print("[SAVED]", folder)
 
     try:
         from utils.telegram_alerts import alert_decision
         alert_decision(cycle_data)
     except Exception as e:
-        print("[telegram] " + str(e))
+        print("[telegram]", e)
 
-    sync("AURUM: " + str(decision) + " @ " + str(price.get("price")))
+    sync("AURUM: " + decision + " @ " + str(price.get("price")))
     return cycle_data
 
 if __name__ == "__main__":

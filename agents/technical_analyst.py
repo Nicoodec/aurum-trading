@@ -1,75 +1,51 @@
-﻿# agents/technical_analyst.py
 from utils.ollama_client import chat, extract_json
 from utils.price_history import get_full_technical_context
 from config import MODEL_HEAVY
 
-SYSTEM = """You are a professional technical analyst for XAU/USD with real calculated indicators.
-Analyze the data provided and give a precise trading bias.
-Gold is at historically high levels. Use the actual RSI, SMAs and support/resistance provided."""
+KEY_LEVELS = [4000,4100,4200,4300,4400,4500,4550,4600,4650,4700,4750,4800,4850,4900,4950,5000,5100,5200]
+
+def nearest(price, n=3):
+    below = sorted([l for l in KEY_LEVELS if l<price], reverse=True)[:n]
+    above = sorted([l for l in KEY_LEVELS if l>price])[:n]
+    return below, above
+
+SYSTEM = ('Professional XAU/USD technical analyst. Use real calculated indicators. '
+          'Respond ONLY in JSON: {"trend":"UP","rsi_zone":"OVERBOUGHT","rsi_value":72,"support":4700,"resistance":4850,"sma20":4650,"bias":"BULLISH","confidence":68,"analysis":"summary"}')
 
 def analyze(price_data):
-    price = price_data.get('price', 0)
-    high  = price_data.get('high',  price)
-    low   = price_data.get('low',   price)
-    chg   = price_data.get('change_pct', 0)
-
-    # Calcular indicadores reales
-    ctx = get_full_technical_context(price)
-    rsi         = ctx.get('rsi')
-    sma20       = ctx.get('sma20')
-    sma50       = ctx.get('sma50')
-    support     = ctx.get('support',    round(price * 0.985, 2))
-    resistance  = ctx.get('resistance', round(price * 1.015, 2))
-    trend_20d   = ctx.get('trend_20d',  'UNKNOWN')
-    price_vs_sma = ctx.get('price_vs_sma', 'UNKNOWN')
-
-    rsi_zone = 'NEUTRAL'
-    if rsi:
-        if rsi > 70: rsi_zone = 'OVERBOUGHT'
-        elif rsi < 30: rsi_zone = 'OVERSOLD'
-
-    prompt = f"""Technical analysis for XAU/USD with real data.
-
-PRICE DATA:
-Current:  | Today: - | Change: {chg}%
-
-CALCULATED INDICATORS:
-RSI(14): {rsi} ({rsi_zone})
-SMA20:    | Price vs SMA20: {price_vs_sma}
-SMA50:   
-20-day trend: {trend_20d}
-
-KEY LEVELS (calculated from {ctx.get('history_days',0)} days of data):
-Support:    
-Resistance: 
-
-Based on these REAL indicators, provide your technical assessment.
-Consider: Is RSI overbought/oversold? Is price above/below SMAs? Is trend intact?
-
-Respond ONLY raw JSON:
-{{"trend": "UP/DOWN/SIDEWAYS", "rsi_zone": "{rsi_zone}", "rsi_value": {rsi or 50},
-  "support": {support}, "resistance": {resistance},
-  "sma20": {sma20 or price}, "entry_zone": {round(price,2)},
-  "bias": "BULLISH/BEARISH/NEUTRAL", "confidence": 65,
-  "analysis": "specific 2 sentence analysis mentioning the actual indicator values"}}"""
-
-    raw    = chat(prompt, model=MODEL_HEAVY, system=SYSTEM, temperature=0.3)
-    result = extract_json(raw)
-
-    if not result or not result.get('support'):
-        result = {
-            'trend':      trend_20d if trend_20d != 'UNKNOWN' else 'SIDEWAYS',
-            'rsi_zone':   rsi_zone,
-            'rsi_value':  rsi or 50,
-            'support':    support,
-            'resistance': resistance,
-            'sma20':      sma20 or price,
-            'bias':       'BULLISH' if trend_20d == 'UP' else ('BEARISH' if trend_20d == 'DOWN' else 'NEUTRAL'),
-            'confidence': 58,
-            'analysis':   f'RSI: {rsi}, SMA20: {sma20}, Trend 20d: {trend_20d}, Price vs SMA: {price_vs_sma}'
-        }
-    # Garantizar niveles reales
-    result['support']    = support
-    result['resistance'] = resistance
-    result['rsi_value']  = rsi or result.get('rsi_value', 50)
-    return result
+    price = price_data.get('price',0)
+    high  = price_data.get('high',price)
+    low   = price_data.get('low',price)
+    chg   = price_data.get('change_pct',0)
+    ctx   = get_full_technical_context(price)
+    rsi   = ctx.get('rsi')
+    sma20 = ctx.get('sma20')
+    sma50 = ctx.get('sma50')
+    t20   = ctx.get('trend_20d','UNKNOWN')
+    below, above = nearest(price)
+    sup = below[0] if below else round(price*0.985,2)
+    res = above[0] if above else round(price*1.015,2)
+    rz  = 'OVERBOUGHT' if (rsi and rsi>70) else ('OVERSOLD' if (rsi and rsi<30) else 'NEUTRAL')
+    p = [
+        'XAU/USD Technical Analysis:',
+        'Price:$'+str(price)+' H:'+str(high)+' L:'+str(low)+' Chg:'+str(chg)+'%',
+        'RSI(14):'+str(rsi)+' Zone:'+rz,
+        'SMA20:$'+str(sma20)+' SMA50:$'+str(sma50)+' Trend20d:'+t20,
+        'Psychological support: '+str(below),
+        'Psychological resistance: '+str(above),
+        'Nearest support:$'+str(sup)+' Nearest resistance:$'+str(res),
+        '',
+        'Provide technical bias. Respond ONLY in JSON.'
+    ]
+    raw = chat(chr(10).join(p), model=MODEL_HEAVY, system=SYSTEM, temperature=0.3)
+    r   = extract_json(raw)
+    if not r or not r.get('support'):
+        r = {'trend':t20 if t20!='UNKNOWN' else 'SIDEWAYS','rsi_zone':rz,'rsi_value':rsi or 50,
+               'support':sup,'resistance':res,'sma20':sma20 or price,
+               'bias':'BULLISH' if t20=='UP' else ('BEARISH' if t20=='DOWN' else 'NEUTRAL'),'confidence':58,
+               'analysis':'RSI:'+str(rsi)+' SMA20:'+str(sma20)+' Trend:'+t20}
+    r['support']   = sup
+    r['resistance'] = res
+    r['rsi_value'] = rsi or r.get('rsi_value',50)
+    r['sma20']     = sma20 or r.get('sma20',price)
+    return r
