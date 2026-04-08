@@ -43,8 +43,15 @@ def run_cycle():
 
     print("[2/8] Collecting news...")
     rss   = collect_rss()
+    try:
+        from agents.delta_one import fetch_deltaone
+        delta = fetch_deltaone()
+        if delta: print('      [DeltaOne]', len(delta), 'tweets')
+    except Exception as e:
+        delta = []
+        print('      [DeltaOne] unavailable:', e)
     api   = fetch_newsapi()
-    items = list({i["title"]: i for i in rss.get("news_items", []) + api}.values())[:30]
+    items = list({i["title"]: i for i in rss.get("news_items", []) + api + delta}.values())[:30]
     gpt   = analyze_news_gpt(items)
     if gpt:
         news = gpt
@@ -176,6 +183,14 @@ def run_cycle():
         alert_decision(cycle_data)
     except Exception as e:
         print("[telegram]", e)
+
+    try:
+        from training.feedback import sync_closed_positions
+        insights, patterns = sync_closed_positions()
+        if insights:
+            print("[training] Insights:", insights[0])
+    except Exception as e:
+        print("[training] error:", e)
 
     sync("AURUM: " + decision + " @ " + str(price.get("price")))
     return cycle_data
