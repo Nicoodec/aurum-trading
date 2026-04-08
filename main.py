@@ -29,6 +29,20 @@ def run_cycle():
     print("AURUM CYCLE --", datetime.now().strftime("%Y-%m-%d %H:%M"))
     print("=" * 52)
 
+    # Sync MT5 positions first
+    try:
+        from utils.position_sync import sync_mt5_positions, get_mt5_account
+        synced = sync_mt5_positions()
+        if synced:
+            print("[sync] Synced " + str(len(synced)) + " closed position(s)")
+            for s in synced:
+                print("[sync]   ticket=" + str(s["ticket"]) + " PnL=$" + str(s["pnl"]) + " " + s["result"])
+        mt5_acc = get_mt5_account()
+        if mt5_acc:
+            print("[MT5 account] Balance:$" + str(mt5_acc.get("balance","--")) + " Equity:$" + str(mt5_acc.get("equity","--")) + " Profit:$" + str(mt5_acc.get("profit","--")))
+    except Exception as e:
+        print("[sync] error:", e)
+
     stats = get_stats()
     print("[portfolio] Equity:$" + str(stats["equity"]) + " Open:" + str(stats["open_positions"]) + "/" + str(MAX_POSITIONS))
     if stats["open_positions"] >= MAX_POSITIONS:
@@ -46,7 +60,11 @@ def run_cycle():
     try:
         from agents.delta_one import fetch_deltaone
         delta = fetch_deltaone()
-        if delta: print('      [DeltaOne]', len(delta), 'tweets')
+        if delta:
+            print('      [DeltaOne] ' + str(len(delta)) + ' items:')
+            for _d in delta[:6]:
+                _tag = 'BREAK' if _d.get('breaking') else ('GOLD' if _d.get('relevant') else '----')
+                print('      ['+_tag+'] ' + _d['title'][:80])
     except Exception as e:
         delta = []
         print('      [DeltaOne] unavailable:', e)
@@ -122,7 +140,18 @@ def run_cycle():
     ticket = None
     if risk.get("valid") and decision in ("LONG", "SHORT"):
         print("    Entry:" + str(risk["entry"]) + " SL:" + str(risk["stop_loss"]) + " TP:" + str(risk["take_profit"]) + " Lots:" + str(risk["contracts"]))
-        if MT5_ENABLED:
+        from utils.market_hours import is_market_open, get_market_status
+        mkt_open, mkt_reason = is_market_open()
+        mkt_status = get_market_status()
+        print("    [Market] " + mkt_status["utc_time"] + " | " + mkt_reason)
+        if not mkt_open:
+            print("    [MT5] SKIPPING ORDER -- " + mkt_reason)
+            print("    [MT5] Order will execute at next cycle when market reopens")
+            try:
+                from utils.telegram_alerts import send
+                send("AURUM: " + decision + " signal @ $" + str(risk["entry"]) + " -- Market closed, waiting to execute\n" + mkt_reason)
+            except: pass
+        elif MT5_ENABLED:
             try:
                 from agents.mt5_broker import connect, open_trade, disconnect
                 if connect(MT5_LOGIN, MT5_PASSWORD, MT5_SERVER):

@@ -32,6 +32,15 @@ def check_news():
         return False,news
     except Exception as e: print('[daemon] news: '+str(e)); return False,{}
 
+def sync_positions():
+    try:
+        from utils.position_sync import sync_mt5_positions
+        results = sync_mt5_positions()
+        for r in results:
+            print("[daemon sync] ticket=" + str(r["ticket"]) + " PnL=$" + str(r["pnl"]) + " " + r["result"])
+    except Exception as e:
+        print("[daemon sync] error:", e)
+
 def monitor():
     try:
         from agents.mt5_broker import connect,get_open_positions,get_account_summary,disconnect
@@ -87,6 +96,7 @@ while True:
             last_cycle=now
             if market_open(): cycle()
             else: print('[daemon] Market closed')
+        sync_positions()
         time.sleep(MON_INTERVAL)
     except KeyboardInterrupt: send('AURUM DAEMON stopped'); break
     except Exception as e: print('[daemon] loop: '+str(e)); time.sleep(30)
