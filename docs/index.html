@@ -126,29 +126,15 @@ function fd(n){return n!=null?"$"+Number(n).toLocaleString("en-US",{minimumFract
 function sv(id,v){const e=document.getElementById(id);if(e)e.textContent=v}
 const D={
   "latest": {
-    "ts": "2026-04-08T12:15:25.978362",
-    "price": 4787.895,
-    "change_pct": 1.73,
-    "decision": "SHORT",
-    "confidence": 62,
-    "reason": "Bear debate winner",
+    "ts": "2026-04-08T12:26:13.296728",
+    "price": 4774.065,
+    "change_pct": 1.44,
+    "decision": "STAY OUT",
+    "confidence": 0,
+    "reason": "Debate tie (margin 0.3pts)",
     "risk_plan": {
-      "valid": true,
-      "direction": "SHORT",
-      "entry": 4787.9,
-      "stop_loss": 4983.25,
-      "take_profit": 4397.19,
-      "sl_distance": 195.35,
-      "tp_distance": 390.71,
-      "risk_reward": 2.0,
-      "win_probability": 62.0,
-      "kelly_fraction": 2.0,
-      "risk_usd": 501.62,
-      "actual_risk_pct": 2.34,
-      "contracts": 0.03,
-      "margin_needed": 478.79,
-      "debate_margin": 8.0,
-      "balance_used": 25081.05
+      "valid": false,
+      "reason": "Debate ended in tie -- STAY OUT"
     },
     "mt5_ticket": null,
     "news_items": [
@@ -202,11 +188,11 @@ const D={
       }
     ],
     "debate_summary": {
-      "winner": "BEAR",
-      "bull_conf": 54.0,
-      "bear_conf": 62.0,
-      "margin": 8.0,
-      "is_tie": false,
+      "winner": "TIE",
+      "bull_conf": 58.7,
+      "bear_conf": 59.0,
+      "margin": 0.3,
+      "is_tie": true,
       "rounds": [
         [
           57,
@@ -214,35 +200,34 @@ const D={
         ],
         [
           57,
-          57
+          63
         ],
         [
-          48,
-          72
+          62,
+          57
         ]
       ]
     },
     "macro": {
       "bias": "BULLISH",
-      "confidence": 70,
+      "confidence": 65,
       "drivers": [
-        "geopolitical_risk",
-        "inflation_concerns",
-        "dollar_weakness"
+        "US-Iran ceasefire plan",
+        "Iran war uncertainty dampens demand",
+        "Risk of rising inflation"
       ],
       "risks": [
-        "ceasefire_reducing_conflict",
-        "dollar_strength_risk"
+        "Limited data"
       ],
-      "analysis": "Gold is likely to move up due to geopolitical risks, inflation concerns, and dollar weakness."
+      "analysis": "Based on 12 items. Sentiment: BULLISH_GOLD"
     },
     "technical": {
       "trend": "UP",
-      "rsi_value": 72.8,
+      "rsi_value": 72.3,
       "rsi_zone": "OVERBOUGHT",
       "support": 4719.7,
       "resistance": 4983.25,
-      "sma20": 4566.19,
+      "sma20": 4565.5,
       "bias": "BULLISH"
     },
     "portfolio": {
@@ -250,7 +235,7 @@ const D={
       "total_pnl": 0,
       "equity": 25000.0,
       "total_trades": 0,
-      "open_positions": 0,
+      "open_positions": 1,
       "win_rate": 0,
       "wins": 0,
       "losses": 0,
@@ -313,6 +298,12 @@ const D={
       "decision": "SHORT",
       "price": 4787.895,
       "confidence": 62
+    },
+    {
+      "ts": "20260408_1226",
+      "decision": "STAY OUT",
+      "price": 4774.065,
+      "confidence": 0
     }
   ],
   "stats": {
@@ -320,7 +311,7 @@ const D={
     "total_pnl": 0,
     "equity": 25000.0,
     "total_trades": 0,
-    "open_positions": 0,
+    "open_positions": 1,
     "win_rate": 0,
     "wins": 0,
     "losses": 0,
