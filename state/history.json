@@ -106,5 +106,11 @@
     "decision": "STAY OUT",
     "price": 4720.17,
     "confidence": 0
+  },
+  {
+    "ts": "20260409_0011",
+    "decision": "LONG",
+    "price": 4728.59,
+    "confidence": 72
   }
 ]

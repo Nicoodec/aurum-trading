@@ -153,17 +153,31 @@ function fd(n,pre="$"){
 function sv(id,v){const e=document.getElementById(id);if(e)e.textContent=v==null?"--":v}
 const D={
   "latest": {
-    "ts": "2026-04-08T23:59:02.432499",
-    "price": 4720.17,
-    "change_pct": -0.51,
-    "decision": "STAY OUT",
-    "confidence": 0,
-    "reason": "Debate tie (margin 3.7pts)",
+    "ts": "2026-04-09T00:11:45.046449",
+    "price": 4728.59,
+    "change_pct": 0.03,
+    "decision": "LONG",
+    "confidence": 72,
+    "reason": "Bullish debate margin (5.7pts) with 59% confidence vs 53.3% bears, RR=2.0, $501.61 risk. News sentiment bullish gold offsets neutral macro environment. Demo account allows trade with clear signals.",
     "risk_plan": {
-      "valid": false,
-      "reason": "Debate ended in tie"
+      "valid": true,
+      "direction": "LONG",
+      "entry": 4728.59,
+      "stop_loss": 4458.47,
+      "take_profit": 5268.83,
+      "sl_distance": 270.12,
+      "tp_distance": 540.24,
+      "risk_reward": 2.0,
+      "win_probability": 59.0,
+      "kelly_fraction": 2.0,
+      "risk_usd": 501.61,
+      "contracts": 0.02,
+      "margin_needed": 315.24,
+      "atr_used": 180.08,
+      "debate_margin": 5.7,
+      "balance_used": 25080.57
     },
-    "mt5_ticket": null,
+    "mt5_ticket": 421669325,
     "news_items": [
       {
         "source": "BBC Business",
@@ -215,28 +229,28 @@ const D={
       "macro_bias": "BEARISH"
     },
     "debate_summary": {
-      "winner": "TIE",
-      "bull_conf": 46.3,
-      "bear_conf": 50.0,
-      "margin": 3.7,
-      "is_tie": true
+      "winner": "BULL",
+      "bull_conf": 59.0,
+      "bear_conf": 53.3,
+      "margin": 5.7,
+      "is_tie": false
     },
     "macro": {
       "bias": "NEUTRAL",
       "confidence": 52,
       "drivers": [
-        "US-Iran ceasefire plan"
+        "US-Iran ceasefire announcement"
       ],
-      "analysis": "DXY=120.7 10Y=4.33% Sentiment=BULLISH_GOLD Price change=-0.51%"
+      "analysis": "DXY=120.7 10Y=4.33% Sentiment=BULLISH_GOLD Price change=0.03%"
     },
     "technical": {
-      "trend": "UP",
-      "rsi_value": 70.3,
-      "rsi_zone": "OVERBOUGHT",
+      "trend": "DOWN",
+      "rsi_value": 63.9,
+      "rsi_zone": "NEUTRAL",
       "support": 4700,
       "resistance": 4750,
-      "sma20": 4562.81,
-      "bias": "BULLISH"
+      "sma20": 4671.87,
+      "bias": "BEARISH"
     },
     "portfolio": {
       "capital": 25080.57,
@@ -374,6 +388,12 @@ const D={
       "decision": "STAY OUT",
       "price": 4720.17,
       "confidence": 0
+    },
+    {
+      "ts": "20260409_0011",
+      "decision": "LONG",
+      "price": 4728.59,
+      "confidence": 72
     }
   ],
   "stats": {
