@@ -1,73 +1,83 @@
-import requests, re, time
+import requests, re, json
 from datetime import datetime
 
 GOLD_KEYWORDS = [
     "gold","xau","fed","rate","inflation","dollar","treasury",
     "tariff","iran","war","geopolit","safe haven","powell",
     "cpi","nfp","payroll","gdp","recession","china","risk",
-    "breaking","flash","alert"
+    "breaking","flash","alert","crude","oil"
 ]
 
-def _try_nitter(username, max_items=15):
-    instances = [
-        "https://nitter.poast.org",
-        "https://nitter.net",
-        "https://nitter.it",
-        "https://nitter.privacydev.net",
+def _fetch_via_rss():
+    # Usar Nitter RSS feed alternativo
+    urls = [
+        "https://nitter.poast.org/DeItaone/rss",
+        "https://nitter.privacydev.net/DeItaone/rss",
+        "https://nitter.net/DeItaone/rss",
+        "https://nitter.it/DeItaone/rss",
+        "https://nitter.1d4.us/DeItaone/rss",
+        "https://nitter.cz/DeItaone/rss",
     ]
-    for inst in instances:
+    for url in urls:
         try:
-            r = requests.get(inst+"/"+username, headers={"User-Agent":"Mozilla/5.0"}, timeout=8)
-            if r.status_code == 200 and "tweet" in r.text.lower():
-                tweets = re.findall(r'<div class="tweet-content[^"]*"[^>]*>(.*?)</div>', r.text, re.DOTALL)
+            r = requests.get(url, headers={"User-Agent":"Mozilla/5.0 AURUM/1.0"}, timeout=8)
+            if r.status_code == 200 and "<item>" in r.text:
+                titles = re.findall(r"<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</title>", r.text, re.DOTALL)
                 items = []
-                for t in tweets[:20]:
-                    text = re.sub(r'<[^>]+>', '', t).strip()
-                    text = re.sub(r'\s+', ' ', text).strip()
-                    if len(text) > 20:
+                for t in titles[1:20]:  # skip feed title
+                    text = re.sub(r"<[^>]+>", "", t).strip()
+                    text = re.sub(r"\s+", " ", text).strip()
+                    if len(text) > 15 and "@" not in text[:10]:
                         tl = text.lower()
-                        items.append({"source":"DeltaOne","title":text[:150],"body":"","relevant":any(k in tl for k in GOLD_KEYWORDS)})
+                        items.append({
+                            "source":   "DeltaOne",
+                            "title":    text[:160],
+                            "body":     "",
+                            "relevant": any(k in tl for k in GOLD_KEYWORDS)
+                        })
                 if items:
-                    print(f"[deltaone] {len(items)} tweets from {inst}")
+                    print(f"[deltaone] {len(items)} items from {url}")
                     return items
         except Exception as e:
-            print(f"[deltaone] {inst}: {type(e).__name__}")
+            print(f"[deltaone] {url.split('/')[2]}: {type(e).__name__}")
     return []
 
-def _try_rss_bridge(username):
-    bridges = [
-        f"https://rss-bridge.org/bridge01/?action=display&bridge=Twitter&context=By+username&u={username}&format=Atom",
-    ]
-    for bridge in bridges:
-        try:
-            r = requests.get(bridge, headers={"User-Agent":"Mozilla/5.0"}, timeout=8)
-            if r.status_code == 200:
-                titles = re.findall(r'<title><!\[CDATA\[(.*?)\]\]></title>|<title>(.*?)</title>', r.text, re.DOTALL)
-                items = []
-                for t in titles[1:15]:
-                    text = (t[0] or t[1]).strip()
-                    text = re.sub(r'<[^>]+>', '', text).strip()
-                    if len(text) > 20:
-                        tl = text.lower()
-                        items.append({"source":"DeltaOne","title":text[:150],"body":"","relevant":any(k in tl for k in GOLD_KEYWORDS)})
-                if items:
-                    print(f"[deltaone] {len(items)} items from RSS bridge")
-                    return items
-        except: pass
+def _fetch_via_twscraper():
+    try:
+        from twscraper import scrape_user
+        tweets = scrape_user("DeItaone", limit=15)
+        items = []
+        for t in tweets:
+            text = t.get("text","").strip()
+            if len(text) > 15:
+                tl = text.lower()
+                items.append({
+                    "source":   "DeltaOne",
+                    "title":    text[:160],
+                    "body":     "",
+                    "relevant": any(k in tl for k in GOLD_KEYWORDS)
+                })
+        if items:
+            print(f"[deltaone] {len(items)} tweets via twscraper")
+            return items
+    except Exception as e:
+        print(f"[deltaone] twscraper: {e}")
     return []
 
 def fetch_deltaone(max_items=15):
-    items = _try_nitter("DeItaone", max_items)
+    items = _fetch_via_rss()
     if not items:
-        items = _try_rss_bridge("DeItaone")
+        items = _fetch_via_twscraper()
     if not items:
-        print("[deltaone] all sources unavailable")
+        print("[deltaone] all methods unavailable")
         return []
-    rel = [i for i in items if i["relevant"]]
-    return (rel + [i for i in items if not i["relevant"]])[:max_items]
+    relevant = [i for i in items if i["relevant"]]
+    other    = [i for i in items if not i["relevant"]]
+    result   = (relevant + other)[:max_items]
+    return result
 
 def get_breaking_from_deltaone():
     items = fetch_deltaone()
-    breaking_kw = ["breaking","flash","alert","urgent","just in"]
+    breaking_kw = ["breaking","flash","alert","urgent","just in","rtrs","bbg"]
     breaking = [i for i in items if any(k in i["title"].lower() for k in breaking_kw)]
     return breaking or items[:5]
