@@ -1,0 +1,12 @@
+{
+  "period": "2026-01-14 to 2026-04-08",
+  "trades": 2,
+  "wins": 0,
+  "losses": 2,
+  "win_rate": 0.0,
+  "total_pnl": -1000.0,
+  "return_pct": -4.0,
+  "profit_factor": 0.0,
+  "sharpe": -2.58,
+  "max_drawdown": 1000.0
+}
