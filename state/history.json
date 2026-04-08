@@ -88,5 +88,11 @@
     "decision": "LONG",
     "price": 4724.505,
     "confidence": 72
+  },
+  {
+    "ts": "20260408_2315",
+    "decision": "STAY OUT",
+    "price": 4720.17,
+    "confidence": 0
   }
 ]
