@@ -70,5 +70,11 @@
     "decision": "STAY OUT",
     "price": 4787.3,
     "confidence": 0
+  },
+  {
+    "ts": "20260408_2214",
+    "decision": "STAY OUT",
+    "price": 4727.985,
+    "confidence": 0
   }
 ]

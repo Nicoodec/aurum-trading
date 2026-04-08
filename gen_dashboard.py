@@ -35,12 +35,12 @@ pre.ascii{color:#f0c040;font-size:clamp(5px,1vw,12px);line-height:1.15;text-alig
 .card{background:#060606;border:1px solid #c9a84c15;border-radius:6px;padding:18px}
 .ct{color:#555;font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #111}
 .m{display:flex;justify-content:space-between;align-items:center;margin:6px 0;font-size:12px}
-.k{color:#333}.v{color:#e8c46a}.g{color:#4ade80}.r{color:#f87171}
+.k{color:#333}.v{color:#f0c040}.g{color:#4ade80}.r{color:#f87171}
 .bw{background:#0a0a0a;border-radius:2px;height:5px;flex:1;margin:0 8px}
 .bf{height:5px;border-radius:2px;transition:width .8s}.bb{background:#4ade80}.br{background:#f87171}
 table{width:100%;border-collapse:collapse;font-size:11px}
-th{color:#333;padding:8px 6px;text-align:left;border-bottom:1px solid #0f0f0f;font-size:9px;text-transform:uppercase}
-td{padding:6px;border-bottom:1px solid #080808;color:#555}
+th{color:#c9a84c;padding:8px 6px;text-align:left;border-bottom:1px solid #0f0f0f;font-size:9px;text-transform:uppercase}
+td{padding:6px;border-bottom:1px solid #080808;color:#9a7a30}
 td.LONG{color:#4ade80}td.SHORT{color:#f87171}td.STAY_OUT{color:#222}
 .ni{color:#444;font-size:10px;padding:4px 0;border-bottom:1px solid #0a0a0a;line-height:1.4}
 .ns{color:#c9a84c33}
