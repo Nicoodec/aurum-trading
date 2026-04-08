@@ -71,23 +71,20 @@ def get_xauusd():
 
 def get_technical_data():
     d = get_xauusd()
-    # Si MT5 da precio pero no high/low, calcular desde historial MT5
-    if d["source"] == "MT5_realtime" and not d.get("high"):
-        try:
-            import MetaTrader5 as mt5
-            from datetime import datetime
-            if mt5.initialize():
-                rates = mt5.copy_rates_from_pos("XAUUSD", mt5.TIMEFRAME_D1, 0, 1)
-                if rates is not None and len(rates) > 0:
-                    d["open"]  = float(rates[0]["open"])
-                    d["high"]  = float(rates[0]["high"])
-                    d["low"]   = float(rates[0]["low"])
-                    p = d["price"]
-                    op = d["open"]
-                    if op and op > 0:
-                        d["change"]     = round(p - op, 2)
-                        d["change_pct"] = round((p - op) / op * 100, 2)
-                mt5.shutdown()
-        except Exception as e:
-            print("[price_feed] MT5 OHLC error:", e)
+    # Enriquecer con OHLC del dia actual desde MT5
+    try:
+        import MetaTrader5 as mt5
+        if mt5.initialize():
+            # Barra diaria actual
+            rates = mt5.copy_rates_from_pos("XAUUSD", mt5.TIMEFRAME_D1, 0, 1)
+            if rates is not None and len(rates) > 0:
+                d["open"] = float(rates[0]["open"])
+                d["high"] = float(rates[0]["high"])
+                d["low"]  = float(rates[0]["low"])
+                if d.get("price") and d["open"] > 0:
+                    d["change"]     = round(d["price"] - d["open"], 2)
+                    d["change_pct"] = round((d["price"] - d["open"]) / d["open"] * 100, 2)
+            mt5.shutdown()
+    except Exception as e:
+        print("[price_feed] MT5 OHLC error:", e)
     return d
