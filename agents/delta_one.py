@@ -1,83 +1,59 @@
-import requests, re, json
-from datetime import datetime
+﻿import os, re, html
 
-GOLD_KEYWORDS = [
+GOLD_KW = [
     "gold","xau","fed","rate","inflation","dollar","treasury",
     "tariff","iran","war","geopolit","safe haven","powell",
     "cpi","nfp","payroll","gdp","recession","china","risk",
-    "breaking","flash","alert","crude","oil"
+    "breaking","flash","alert","crude","oil","brent","hormuz",
+    "sanctions","nuclear","ceasefire","vance","trump","ukraine"
 ]
 
-def _fetch_via_rss():
-    # Usar Nitter RSS feed alternativo
-    urls = [
+BREAKING_KW = ["breaking","flash","alert","urgent","just in","rtrs","bbg","sources say"]
+
+def fetch_deltaone(max_items=20):
+    import requests
+    FEEDS = [
+        "https://nitter.net/DeItaone/rss",
         "https://nitter.poast.org/DeItaone/rss",
         "https://nitter.privacydev.net/DeItaone/rss",
-        "https://nitter.net/DeItaone/rss",
         "https://nitter.it/DeItaone/rss",
-        "https://nitter.1d4.us/DeItaone/rss",
         "https://nitter.cz/DeItaone/rss",
+        "https://nitter.1d4.us/DeItaone/rss",
     ]
-    for url in urls:
+    for url in FEEDS:
         try:
-            r = requests.get(url, headers={"User-Agent":"Mozilla/5.0 AURUM/1.0"}, timeout=8)
-            if r.status_code == 200 and "<item>" in r.text:
-                titles = re.findall(r"<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</title>", r.text, re.DOTALL)
-                items = []
-                for t in titles[1:20]:  # skip feed title
-                    text = re.sub(r"<[^>]+>", "", t).strip()
-                    text = re.sub(r"\s+", " ", text).strip()
-                    if len(text) > 15 and "@" not in text[:10]:
-                        tl = text.lower()
-                        items.append({
-                            "source":   "DeltaOne",
-                            "title":    text[:160],
-                            "body":     "",
-                            "relevant": any(k in tl for k in GOLD_KEYWORDS)
-                        })
-                if items:
-                    print(f"[deltaone] {len(items)} items from {url}")
-                    return items
-        except Exception as e:
-            print(f"[deltaone] {url.split('/')[2]}: {type(e).__name__}")
-    return []
-
-def _fetch_via_twscraper():
-    try:
-        from twscraper import scrape_user
-        tweets = scrape_user("DeItaone", limit=15)
-        items = []
-        for t in tweets:
-            text = t.get("text","").strip()
-            if len(text) > 15:
+            r = requests.get(url, headers={"User-Agent":"Mozilla/5.0 AURUM/1.0"}, timeout=10)
+            if r.status_code != 200 or "<item>" not in r.text:
+                continue
+            titles = re.findall(r"<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</title>", r.text, re.DOTALL)
+            items = []
+            for t in titles[1:max_items+5]:
+                text = re.sub(r"<[^>]+>", "", t).strip()
+                text = html.unescape(text)
+                text = re.sub(r"\s+", " ", text).strip()
+                if len(text) < 15 or text.startswith("@"):
+                    continue
                 tl = text.lower()
+                relevant  = any(k in tl for k in GOLD_KW)
+                breaking  = any(k in tl for k in BREAKING_KW)
                 items.append({
                     "source":   "DeltaOne",
-                    "title":    text[:160],
+                    "title":    text[:180],
                     "body":     "",
-                    "relevant": any(k in tl for k in GOLD_KEYWORDS)
+                    "relevant": relevant,
+                    "breaking": breaking,
                 })
-        if items:
-            print(f"[deltaone] {len(items)} tweets via twscraper")
-            return items
-    except Exception as e:
-        print(f"[deltaone] twscraper: {e}")
+            if items:
+                print(f"[deltaone] {len(items)} items from {url.split('/')[2]}")
+                rel = [i for i in items if i["relevant"]]
+                oth = [i for i in items if not i["relevant"]]
+                return (rel + oth)[:max_items]
+        except Exception as e:
+            print(f"[deltaone] {url.split('/')[2]}: {type(e).__name__}")
+    print("[deltaone] all sources unavailable")
     return []
-
-def fetch_deltaone(max_items=15):
-    items = _fetch_via_rss()
-    if not items:
-        items = _fetch_via_twscraper()
-    if not items:
-        print("[deltaone] all methods unavailable")
-        return []
-    relevant = [i for i in items if i["relevant"]]
-    other    = [i for i in items if not i["relevant"]]
-    result   = (relevant + other)[:max_items]
-    return result
 
 def get_breaking_from_deltaone():
     items = fetch_deltaone()
-    breaking_kw = ["breaking","flash","alert","urgent","just in","rtrs","bbg"]
-    breaking = [i for i in items if any(k in i["title"].lower() for k in breaking_kw)]
-    return breaking or items[:5]
+    brk = [i for i in items if i.get("breaking")]
+    return brk or [i for i in items if i.get("relevant")][:5]
