@@ -42,9 +42,26 @@
     "contracts": 0.02,
     "rr": 2.0,
     "opened_at": "2026-04-09T00:11:45.048467",
+    "status": "LOSS",
+    "pnl": 0,
+    "closed_at": "2026-04-09T11:09:01.548515",
+    "cycle_ts": "2026-04-09T00:11:45.046449",
+    "exit_price": 4728.59
+  },
+  {
+    "id": 4,
+    "ticket": 422004275,
+    "direction": "SHORT",
+    "entry": 4730.14,
+    "stop_loss": 5000.26,
+    "take_profit": 4189.9,
+    "risk_usd": 0.0,
+    "contracts": 0.01,
+    "rr": 2.0,
+    "opened_at": "2026-04-09T11:20:21.406494",
     "status": "OPEN",
     "pnl": null,
     "closed_at": null,
-    "cycle_ts": "2026-04-09T00:11:45.046449"
+    "cycle_ts": "2026-04-09T11:20:21.405498"
   }
 ]

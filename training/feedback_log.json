@@ -1,5 +1,16 @@
 {
-  "trades": [],
-  "patterns": {},
+  "trades": [
+    {
+      "ts": "2026-04-09T11:09:01.548515",
+      "decision": "LONG",
+      "outcome": "LOSS",
+      "pnl": 0,
+      "price": 4728.59
+    }
+  ],
+  "patterns": {
+    "win_rate": 0.0,
+    "total_trades": 1
+  },
   "stats": {}
 }

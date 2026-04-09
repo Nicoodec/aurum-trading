@@ -112,5 +112,11 @@
     "decision": "LONG",
     "price": 4728.59,
     "confidence": 72
+  },
+  {
+    "ts": "20260409_1120",
+    "decision": "SHORT",
+    "price": 4730.14,
+    "confidence": 83
   }
 ]
