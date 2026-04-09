@@ -49,7 +49,15 @@ def run_cycle():
         print("[portfolio] MAX positions reached")
         return None
 
-    print("[1/8] Alpha Vantage OHLCV...")
+    print("[1/8] Technical signal (EMA+RSI+ADX)...")
+    from agents.signal_engine import get_signal_from_mt5, format_signal_summary
+    tech_signal, d1_candles = get_signal_from_mt5(verbose=False)
+    if tech_signal:
+        print("      Signal: " + format_signal_summary(tech_signal))
+    else:
+        print("      No technical setup — cycle will run but signal gate active")
+
+    # Cache D1 history for RSI/SMA calculations later
     try:
         fetch_ohlcv()
     except Exception as e:
@@ -131,8 +139,30 @@ def run_cycle():
         for w in ftmo_check.get("warnings", []):
             print("      " + w)
 
-    final    = decide(debate, risk, macro, news)
-    decision = final.get("decision")
+    # Gate tecnico: si no hay setup tecnico valido, STAY OUT
+    if tech_signal is None:
+        print("      [GATE] No technical setup — overriding to STAY OUT")
+        final = {"decision": "STAY OUT", "confidence": 0,
+                 "reason": "No technical setup (EMA/RSI/ADX filter)"}
+        decision = "STAY OUT"
+    else:
+        final    = decide(debate, risk, macro, news)
+        decision = final.get("decision")
+
+        # Verificacion de alineacion: decision IA vs señal tecnica
+        if decision in ("LONG","SHORT") and decision != tech_signal["signal"]:
+            print(f"      [GATE] IA says {decision} but technical says {tech_signal['signal']} — STAY OUT")
+            final = {"decision": "STAY OUT", "confidence": 0,
+                     "reason": f"Technical/AI conflict: tech={tech_signal['signal']} ai={decision}"}
+            decision = "STAY OUT"
+        elif decision in ("LONG","SHORT"):
+            # Boost o penalizacion de confianza segun alineacion tecnica
+            tech_conf  = tech_signal.get("confidence", 60)
+            ai_conf    = final.get("confidence", 50)
+            final_conf = round((tech_conf * 0.5) + (ai_conf * 0.5))
+            final["confidence"] = final_conf
+            final["tech_signal"] = tech_signal
+            print(f"      [GATE] Technical + AI aligned: {decision} | tech_conf={tech_conf}% ai_conf={ai_conf}% final={final_conf}%")
     print()
     print(">>> DECISION: " + decision + " conf:" + str(final.get("confidence")) + "%")
     print("    " + str(final.get("reason")))

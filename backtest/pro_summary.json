@@ -1,0 +1,482 @@
+{
+  "run_date": "2026-04-09T10:39:39.297495",
+  "period": "2024-05-01 \u2192 2026-04-08",
+  "candles": 500,
+  "capital": 25000.0,
+  "full_backtest": {
+    "trades": 31,
+    "wins": 19,
+    "losses": 12,
+    "win_rate": 61.3,
+    "total_pnl": 15342.71,
+    "profit_factor": 2.86,
+    "sharpe": 1.36,
+    "max_drawdown": 2575.5,
+    "avg_win": 1242.18,
+    "avg_loss": 688.23,
+    "return_pct": 61.37
+  },
+  "walk_forward": {
+    "train": {
+      "trades": 17,
+      "wins": 11,
+      "losses": 6,
+      "win_rate": 64.7,
+      "total_pnl": 8704.94,
+      "profit_factor": 3.38,
+      "sharpe": 1.54,
+      "max_drawdown": 1810.45,
+      "avg_win": 1124.09,
+      "avg_loss": 610.01,
+      "return_pct": 34.82
+    },
+    "test": {
+      "trades": 8,
+      "wins": 5,
+      "losses": 3,
+      "win_rate": 62.5,
+      "total_pnl": 3423.86,
+      "profit_factor": 2.89,
+      "sharpe": 1.16,
+      "max_drawdown": 1814.66,
+      "avg_win": 1047.7,
+      "avg_loss": 604.89,
+      "return_pct": 13.7
+    },
+    "pf_degradation": 0.86,
+    "wr_degradation": 0.97,
+    "overfitting_risk": "LOW"
+  },
+  "monte_carlo": {
+    "runs": 1000,
+    "ruin_pct": 0.0,
+    "median_equity": 40342.71,
+    "p5_equity": 40342.71,
+    "p95_equity": 40342.71,
+    "p5_return": 61.37,
+    "p95_return": 61.37,
+    "median_return": 61.37,
+    "avg_max_dd": 2274.67,
+    "p95_max_dd": 3528.71
+  },
+  "sensitivity": [
+    {
+      "param": "adx_min",
+      "stable": true,
+      "sharpe_std": 0.15,
+      "variants": [
+        {
+          "change": "-20%",
+          "value": 16.0,
+          "sharpe": 1.62,
+          "pf": 3.2,
+          "wr": 64.7,
+          "trades": 34
+        },
+        {
+          "change": "-10%",
+          "value": 18.0,
+          "sharpe": 1.54,
+          "pf": 3.09,
+          "wr": 63.6,
+          "trades": 33
+        },
+        {
+          "change": "+10%",
+          "value": 22.0,
+          "sharpe": 1.36,
+          "pf": 2.86,
+          "wr": 61.3,
+          "trades": 31
+        },
+        {
+          "change": "+20%",
+          "value": 24.0,
+          "sharpe": 1.3,
+          "pf": 2.7,
+          "wr": 60.0,
+          "trades": 30
+        }
+      ]
+    },
+    {
+      "param": "rsi_long_min",
+      "stable": true,
+      "sharpe_std": 0.029,
+      "variants": [
+        {
+          "change": "-20%",
+          "value": 28.0,
+          "sharpe": 1.36,
+          "pf": 2.86,
+          "wr": 61.3,
+          "trades": 31
+        },
+        {
+          "change": "-10%",
+          "value": 31.5,
+          "sharpe": 1.36,
+          "pf": 2.86,
+          "wr": 61.3,
+          "trades": 31
+        },
+        {
+          "change": "+10%",
+          "value": 38.5,
+          "sharpe": 1.42,
+          "pf": 3.08,
+          "wr": 63.3,
+          "trades": 30
+        },
+        {
+          "change": "+20%",
+          "value": 42.0,
+          "sharpe": 1.39,
+          "pf": 3.08,
+          "wr": 63.3,
+          "trades": 30
+        }
+      ]
+    },
+    {
+      "param": "rsi_long_max",
+      "stable": true,
+      "sharpe_std": 0.117,
+      "variants": [
+        {
+          "change": "-20%",
+          "value": 49.6,
+          "sharpe": 1.21,
+          "pf": 5.89,
+          "wr": 75.0,
+          "trades": 8
+        },
+        {
+          "change": "-10%",
+          "value": 55.8,
+          "sharpe": 1.44,
+          "pf": 3.08,
+          "wr": 62.5,
+          "trades": 24
+        },
+        {
+          "change": "+10%",
+          "value": 68.2,
+          "sharpe": 1.2,
+          "pf": 2.27,
+          "wr": 55.3,
+          "trades": 38
+        },
+        {
+          "change": "+20%",
+          "value": 74.4,
+          "sharpe": 1.21,
+          "pf": 2.09,
+          "wr": 53.3,
+          "trades": 45
+        }
+      ]
+    },
+    {
+      "param": "pullback_ema21_dist",
+      "stable": true,
+      "sharpe_std": 0.038,
+      "variants": [
+        {
+          "change": "-20%",
+          "value": 0.4,
+          "sharpe": 1.33,
+          "pf": 2.86,
+          "wr": 61.3,
+          "trades": 31
+        },
+        {
+          "change": "-10%",
+          "value": 0.45,
+          "sharpe": 1.36,
+          "pf": 2.86,
+          "wr": 61.3,
+          "trades": 31
+        },
+        {
+          "change": "+10%",
+          "value": 0.55,
+          "sharpe": 1.36,
+          "pf": 2.86,
+          "wr": 61.3,
+          "trades": 31
+        },
+        {
+          "change": "+20%",
+          "value": 0.6,
+          "sharpe": 1.42,
+          "pf": 2.86,
+          "wr": 61.3,
+          "trades": 31
+        }
+      ]
+    },
+    {
+      "param": "pullback_ema9_dist",
+      "stable": true,
+      "sharpe_std": 0.0,
+      "variants": [
+        {
+          "change": "-20%",
+          "value": 0.24,
+          "sharpe": 1.36,
+          "pf": 2.86,
+          "wr": 61.3,
+          "trades": 31
+        },
+        {
+          "change": "-10%",
+          "value": 0.27,
+          "sharpe": 1.36,
+          "pf": 2.86,
+          "wr": 61.3,
+          "trades": 31
+        },
+        {
+          "change": "+10%",
+          "value": 0.33,
+          "sharpe": 1.36,
+          "pf": 2.86,
+          "wr": 61.3,
+          "trades": 31
+        },
+        {
+          "change": "+20%",
+          "value": 0.36,
+          "sharpe": 1.36,
+          "pf": 2.86,
+          "wr": 61.3,
+          "trades": 31
+        }
+      ]
+    },
+    {
+      "param": "extension_limit",
+      "stable": true,
+      "sharpe_std": 0.0,
+      "variants": [
+        {
+          "change": "-20%",
+          "value": 1.6,
+          "sharpe": 1.36,
+          "pf": 2.86,
+          "wr": 61.3,
+          "trades": 31
+        },
+        {
+          "change": "-10%",
+          "value": 1.8,
+          "sharpe": 1.36,
+          "pf": 2.86,
+          "wr": 61.3,
+          "trades": 31
+        },
+        {
+          "change": "+10%",
+          "value": 2.2,
+          "sharpe": 1.36,
+          "pf": 2.86,
+          "wr": 61.3,
+          "trades": 31
+        },
+        {
+          "change": "+20%",
+          "value": 2.4,
+          "sharpe": 1.36,
+          "pf": 2.86,
+          "wr": 61.3,
+          "trades": 31
+        }
+      ]
+    },
+    {
+      "param": "sl_atr_mult",
+      "stable": false,
+      "sharpe_std": 0.662,
+      "variants": [
+        {
+          "change": "-20%",
+          "value": 1.2,
+          "sharpe": 1.05,
+          "pf": 1.96,
+          "wr": 46.2,
+          "trades": 39
+        },
+        {
+          "change": "-10%",
+          "value": 1.35,
+          "sharpe": 1.23,
+          "pf": 2.52,
+          "wr": 56.2,
+          "trades": 32
+        },
+        {
+          "change": "+10%",
+          "value": 1.65,
+          "sharpe": 0,
+          "pf": 0,
+          "wr": 0,
+          "trades": 0
+        },
+        {
+          "change": "+20%",
+          "value": 1.8,
+          "sharpe": 0,
+          "pf": 0,
+          "wr": 0,
+          "trades": 0
+        }
+      ]
+    },
+    {
+      "param": "tp_atr_mult",
+      "stable": false,
+      "sharpe_std": 0.956,
+      "variants": [
+        {
+          "change": "-20%",
+          "value": 2.4,
+          "sharpe": 0,
+          "pf": 0,
+          "wr": 0,
+          "trades": 0
+        },
+        {
+          "change": "-10%",
+          "value": 2.7,
+          "sharpe": 0,
+          "pf": 0,
+          "wr": 0,
+          "trades": 0
+        },
+        {
+          "change": "+10%",
+          "value": 3.3,
+          "sharpe": 1.62,
+          "pf": 3.11,
+          "wr": 61.3,
+          "trades": 31
+        },
+        {
+          "change": "+20%",
+          "value": 3.6,
+          "sharpe": 1.69,
+          "pf": 3.35,
+          "wr": 61.3,
+          "trades": 31
+        }
+      ]
+    }
+  ],
+  "feature_importance": {
+    "rsi": {
+      "win_mean": 52.95,
+      "loss_mean": 56.44,
+      "diff": -3.49,
+      "cohen_d": 0.56,
+      "importance": "HIGH"
+    },
+    "adx": {
+      "win_mean": 35.24,
+      "loss_mean": 44.8,
+      "diff": -9.56,
+      "cohen_d": 1.11,
+      "importance": "HIGH"
+    },
+    "dist_ema9": {
+      "win_mean": 0.41,
+      "loss_mean": 0.26,
+      "diff": 0.15,
+      "cohen_d": 0.64,
+      "importance": "HIGH"
+    },
+    "dist_ema21": {
+      "win_mean": 0.48,
+      "loss_mean": 0.56,
+      "diff": -0.08,
+      "cohen_d": 0.2,
+      "importance": "LOW"
+    },
+    "dist_sma20": {
+      "win_mean": 0.18,
+      "loss_mean": 0.37,
+      "diff": -0.19,
+      "cohen_d": 0.33,
+      "importance": "MED"
+    },
+    "confidence": {
+      "win_mean": 74.32,
+      "loss_mean": 71.42,
+      "diff": 2.9,
+      "cohen_d": 0.43,
+      "importance": "MED"
+    },
+    "days_held": {
+      "win_mean": 23.11,
+      "loss_mean": 12.67,
+      "diff": 10.44,
+      "cohen_d": 0.43,
+      "importance": "MED"
+    }
+  },
+  "signal_types": {
+    "TREND": {
+      "trades": 21,
+      "wins": 11,
+      "win_rate": 52.4,
+      "pnl": 6975.09
+    },
+    "PULLBACK_EMA21": {
+      "trades": 9,
+      "wins": 7,
+      "win_rate": 77.8,
+      "pnl": 7270.16
+    },
+    "PULLBACK_EMA9": {
+      "trades": 1,
+      "wins": 1,
+      "win_rate": 100.0,
+      "pnl": 1097.46
+    }
+  },
+  "parameters": {
+    "rsi_period": 14,
+    "ema_fast": 9,
+    "ema_mid": 21,
+    "ema_slow": 50,
+    "sma_period": 20,
+    "atr_period": 14,
+    "adx_period": 14,
+    "bb_period": 20,
+    "adx_min": 20,
+    "adx_strong": 25,
+    "rsi_long_min": 35,
+    "rsi_long_max": 62,
+    "rsi_short_min": 38,
+    "rsi_short_max": 65,
+    "rsi_oversold": 32,
+    "rsi_overbought": 68,
+    "pullback_ema21_dist": 0.5,
+    "pullback_ema9_dist": 0.3,
+    "trend_ema9_dist": 0.8,
+    "extension_limit": 2.0,
+    "sl_atr_mult": 1.5,
+    "tp_atr_mult": 3.0,
+    "min_rr": 2.0,
+    "risk_pct": 0.02,
+    "max_positions": 3,
+    "spread_usd": 0.3,
+    "slippage_max": 0.2,
+    "fee_per_lot": 7.0,
+    "use_pullback_ema21": true,
+    "use_pullback_ema9": true,
+    "use_bb_reversal": true,
+    "use_trend": true,
+    "use_short": true
+  }
+}
