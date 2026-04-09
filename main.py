@@ -8,7 +8,7 @@ from agents.price_feed import get_technical_data
 from agents.price_history_av import fetch_ohlcv
 from agents.signal_engine import get_signal_from_mt5, format_signal_summary
 from agents.technical_analyst import analyze as tech_analyze
-from agents.risk_manager import calculate as risk_calc
+from agents.risk_manager import calculate as risk_calc  # tech_signal based
 from agents.news_filter import analyze as news_filter_analyze
 from agents.macro_filter import check as macro_filter_check
 from agents.arbitrator import decide as arbitrate
@@ -167,10 +167,8 @@ def run_cycle():
 
     # Risk management
     risk = risk_calc(
-        {"winner": tech_signal["signal"] if tech_signal else "NONE",
-         "avg_bull_confidence": tech_signal["confidence"] if tech_signal else 0,
-         "avg_bear_confidence": 0, "margin": 100, "is_tie": False},
-        tech, price,
+        tech_signal,
+        price,
         account_info.get("balance") if account_info else None
     )
     if risk.get("valid"):
