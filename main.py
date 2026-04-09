@@ -7,9 +7,7 @@ from agents.price_feed import get_technical_data
 from agents.price_history_av import fetch_ohlcv
 from agents.macro_analyst import analyze as macro_analyze
 from agents.technical_analyst import analyze as tech_analyze
-from agents.debate import run_debate
 from agents.risk_manager import calculate as risk_calc
-from agents.arbitrator import decide
 from agents.ftmo_validator import validate_before_trade
 from utils.fred_data import get_all as fred_get_all
 from utils.state_manager import save_cycle, load_history
@@ -107,11 +105,34 @@ def run_cycle():
     tech = tech_analyze(price)
     print("      Trend:" + str(tech.get("trend")) + " RSI:" + str(tech.get("rsi_value")) + " S:" + str(tech.get("support")) + " R:" + str(tech.get("resistance")))
 
-    print("[7/8] Debate 3 rounds...")
-    debate = run_debate(macro, tech, price, news)
-    print("      Winner:" + str(debate.get("winner")) + " Bull:" + str(debate.get("avg_bull_confidence")) + "% Bear:" + str(debate.get("avg_bear_confidence")) + "% Margin:" + str(debate.get("margin")) + "pts")
+    print("[7/8] News filter + Macro filter...")
+    from agents.news_filter import analyze as news_filter_analyze
+    from agents.macro_filter import check as macro_filter_check
 
-    print("[8/8] Risk + Arbitrator...")
+    # News filter — CONFIRM / NEUTRAL / VETO
+    if tech_signal:
+        delta_items = [i for i in (news.get("news_items") or []) if i.get("source") == "DeltaOne"]
+        other_items = [i for i in (news.get("news_items") or []) if i.get("source") != "DeltaOne"]
+        news_verdict = news_filter_analyze(tech_signal["signal"], other_items, fred, delta_items)
+        print("      [News] " + news_verdict["verdict"] + " (" + str(news_verdict["confidence"]) + "%) — " + news_verdict["reason"][:80])
+    else:
+        news_verdict = {"verdict": "NEUTRAL", "confidence": 50, "reason": "No technical signal"}
+        print("      [News] NEUTRAL — no technical signal to evaluate")
+
+    # Macro filter — deterministic FRED rules
+    macro_verdict = macro_filter_check(
+        tech_signal["signal"] if tech_signal else "LONG",
+        fred,
+        account_info,
+        daily_pnl=0.0,
+    )
+    print("      [Macro] " + macro_verdict["verdict"] + " | size_mult=" + str(macro_verdict["size_multiplier"]))
+    for w in macro_verdict.get("warnings", []):
+        print("      [Macro] " + w)
+    for r in macro_verdict.get("reasons", []):
+        print("      [Macro] VETO: " + r)
+
+    print("[8/8] Arbitrator...")
     account_info = None
     if MT5_ENABLED:
         try:
@@ -139,30 +160,9 @@ def run_cycle():
         for w in ftmo_check.get("warnings", []):
             print("      " + w)
 
-    # Gate tecnico: si no hay setup tecnico valido, STAY OUT
-    if tech_signal is None:
-        print("      [GATE] No technical setup — overriding to STAY OUT")
-        final = {"decision": "STAY OUT", "confidence": 0,
-                 "reason": "No technical setup (EMA/RSI/ADX filter)"}
-        decision = "STAY OUT"
-    else:
-        final    = decide(debate, risk, macro, news)
-        decision = final.get("decision")
-
-        # Verificacion de alineacion: decision IA vs señal tecnica
-        if decision in ("LONG","SHORT") and decision != tech_signal["signal"]:
-            print(f"      [GATE] IA says {decision} but technical says {tech_signal['signal']} — STAY OUT")
-            final = {"decision": "STAY OUT", "confidence": 0,
-                     "reason": f"Technical/AI conflict: tech={tech_signal['signal']} ai={decision}"}
-            decision = "STAY OUT"
-        elif decision in ("LONG","SHORT"):
-            # Boost o penalizacion de confianza segun alineacion tecnica
-            tech_conf  = tech_signal.get("confidence", 60)
-            ai_conf    = final.get("confidence", 50)
-            final_conf = round((tech_conf * 0.5) + (ai_conf * 0.5))
-            final["confidence"] = final_conf
-            final["tech_signal"] = tech_signal
-            print(f"      [GATE] Technical + AI aligned: {decision} | tech_conf={tech_conf}% ai_conf={ai_conf}% final={final_conf}%")
+    from agents.arbitrator import decide as arbitrate
+    final    = arbitrate(tech_signal, news_verdict, macro_verdict, risk)
+    decision = final.get("decision")
     print()
     print(">>> DECISION: " + decision + " conf:" + str(final.get("confidence")) + "%")
     print("    " + str(final.get("reason")))
