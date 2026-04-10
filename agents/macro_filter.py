@@ -1,9 +1,9 @@
 
 # Thresholds calibrados para XAU/USD swing trading
-DXY_VETO_LONG  = 108.0   # DXY muy alto = dolar muy fuerte = veto LONG oro
-DXY_VETO_SHORT = 96.0    # DXY muy bajo = dolar muy debil = veto SHORT oro
-DXY_WARN_LONG  = 104.0   # zona de precaucion para LONGs
-DXY_WARN_SHORT = 99.0    # zona de precaucion para SHORTs
+DXY_VETO_LONG  = 125.0   # DXY muy alto = dolar muy fuerte = veto LONG oro
+DXY_VETO_SHORT = 98.0    # DXY muy bajo = dolar muy debil = veto SHORT oro
+DXY_WARN_LONG  = 121.0   # zona de precaucion para LONGs
+DXY_WARN_SHORT = 101.0   # zona de precaucion para SHORTs
 
 YIELD_VETO_LONG  = 4.8   # yields muy altos = veto LONG oro
 YIELD_VETO_SHORT = 3.2   # yields muy bajos = veto SHORT oro
