@@ -11,7 +11,7 @@ Estrategia probada para FTMO gold:
 - Filtro de regimen: ADX > 20 (mercado en tendencia)
 """
 import MetaTrader5 as mt5
-from datetime import datetime
+from datetime import datetime, timezone
 
 def _ema(closes, period):
     if len(closes) < period: return None
@@ -71,7 +71,7 @@ def get_signal_from_mt5(verbose=False):
         closes = [c["close"] for c in candles]
         cur    = candles[-1]
         prev   = candles[-2]
-        hour   = datetime.fromtimestamp(cur["time"]).hour
+        hour   = datetime.now(timezone.utc).hour
 
         # Session filter: London 07-10 UTC, NY overlap 12-16 UTC
         in_session = (7 <= hour < 10) or (12 <= hour < 16)
