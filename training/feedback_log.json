@@ -6,11 +6,18 @@
       "outcome": "LOSS",
       "pnl": 0,
       "price": 4728.59
+    },
+    {
+      "ts": "2026-04-09T22:48:25.463369",
+      "decision": "SHORT",
+      "outcome": "LOSS",
+      "pnl": -3.36,
+      "price": 4730.14
     }
   ],
   "patterns": {
     "win_rate": 0.0,
-    "total_trades": 1
+    "total_trades": 2
   },
   "stats": {}
 }

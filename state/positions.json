@@ -59,9 +59,10 @@
     "contracts": 0.01,
     "rr": 2.0,
     "opened_at": "2026-04-09T11:20:21.406494",
-    "status": "OPEN",
-    "pnl": null,
-    "closed_at": null,
-    "cycle_ts": "2026-04-09T11:20:21.405498"
+    "status": "LOSS",
+    "pnl": -3.36,
+    "closed_at": "2026-04-09T22:48:25.463369",
+    "cycle_ts": "2026-04-09T11:20:21.405498",
+    "exit_price": 4732.91
   }
 ]

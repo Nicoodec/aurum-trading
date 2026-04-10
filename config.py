@@ -2,9 +2,6 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-OLLAMA_BASE   = "http://localhost:11434"
-MODEL_HEAVY   = "qwen3:latest"
-MODEL_LIGHT   = "glm4:9b"
 
 CAPITAL       = 25000
 MAX_RISK_PCT  = 0.02
@@ -24,4 +21,3 @@ ALPHAVANTAGE_KEY = os.getenv("ALPHAVANTAGE_KEY", "")
 STATE_DIR     = "state"
 LOG_DIR       = "logs"
 DASH_DIR      = "dashboard"
-DEBATE_ROUNDS = 3
