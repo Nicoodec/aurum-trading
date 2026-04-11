@@ -1,0 +1,63 @@
+{
+  "params": {
+    "asian_start_utc": 0,
+    "asian_end_utc": 7,
+    "london_start_utc": 7,
+    "london_end_utc": 10,
+    "time_exit_utc": 20,
+    "range_min": 5.0,
+    "range_max": 40.0,
+    "sl_buffer_atr": 0.3,
+    "min_rr": 2.0,
+    "ema_period": 200,
+    "adx_min": 18,
+    "risk_pct": 0.01,
+    "max_consec_losses": 2,
+    "daily_loss_pct": 0.05,
+    "total_loss_pct": 0.1,
+    "capital": 25000.0,
+    "leverage": 30,
+    "spread": 0.3,
+    "slip_max": 0.2,
+    "commission": 3.5,
+    "lot_size": 100
+  },
+  "metrics": {
+    "n": 62,
+    "wins": 23,
+    "losses": 39,
+    "wr": 37.1,
+    "pnl": -2625.9,
+    "ret": -10.5,
+    "pf": 0.72,
+    "sharpe": -2.22,
+    "dd": 3265.07,
+    "ddp": 13.06,
+    "aw": 294.19,
+    "al": 240.83,
+    "exp": -42.35,
+    "days": 62
+  },
+  "by_year": {
+    "2022": {
+      "n": 51,
+      "w": 20,
+      "pnl": -1077.57
+    },
+    "2023": {
+      "n": 11,
+      "w": 3,
+      "pnl": -1548.3300000000002
+    }
+  },
+  "monte_carlo": {
+    "runs": 2000,
+    "ruin_pct": 100.0,
+    "target_pct": 0.0,
+    "p5": -11.0,
+    "p50": -10.5,
+    "p95": -10.0,
+    "p95_dd": 4269.93
+  },
+  "viable": false
+}

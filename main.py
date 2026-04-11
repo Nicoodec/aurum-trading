@@ -1,39 +1,170 @@
-﻿import json, os
+"""
+AURUM main.py -- US30 + GPT Arbitrator
+========================================
+Flujo:
+1. Sync MT5 posiciones y cuenta
+2. Signal engine US30 (H4 EMA200 + H1 EMA50 pullback)
+3. Si hay setup: noticias + macro + GPT decide
+4. Si GPT dice LONG/SHORT: ejecuta en MT5
+5. Guarda estado y push a GitHub
+"""
+import json, os
 from datetime import datetime
 from agents.news_collector import collect as collect_rss
-from agents.news_api import fetch_newsapi
-from agents.news_gpt import analyze_news_gpt
 from agents.delta_one import fetch_deltaone
-from agents.price_feed import get_technical_data
-from agents.price_history_av import fetch_ohlcv
+from agents.news_gpt import analyze_news_gpt
 from agents.signal_engine import get_signal_from_mt5, format_signal_summary
-from agents.technical_analyst import analyze as tech_analyze
-from agents.risk_manager import calculate as risk_calc  # tech_signal based
 from agents.news_filter import analyze as news_filter_analyze
 from agents.macro_filter import check as macro_filter_check
-from agents.arbitrator import decide as arbitrate
-from agents.ftmo_validator import validate_before_trade
 from utils.fred_data import get_all as fred_get_all
 from utils.state_manager import save_cycle, load_history
 from utils.github_sync import sync
 from utils.position_sync import sync_mt5_positions, get_mt5_account
-from utils.market_hours import is_market_open
 from gen_dashboard import generate as gen_html
 from portfolio import add_position, get_stats
 from config import MAX_POSITIONS
 
-MT5_ENABLED  = True
 MT5_LOGIN    = 1513020113
 MT5_PASSWORD = "FH2dXFt7?"
 MT5_SERVER   = "FTMO-Demo"
+MT5_ENABLED  = True
+SYMBOL       = "US30.cash"
+
+# US30 sizing: 1 lot = $1 por punto
+LOT_SIZE     = 1.0
+RISK_PCT     = 0.01
+COMMISSION   = 0.50
+
+def gpt_arbitrator(signal, news_items, fred, account_info, daily_pnl=0.0):
+    """
+    GPT-4o decide si ejecutar la señal técnica basándose en:
+    - Setup técnico completo
+    - Noticias en tiempo real
+    - Datos macro (DXY, yields)
+    - Estado FTMO actual
+    
+    Returns: {"decision": "LONG"|"SHORT"|"STAY OUT", "confidence": int, "reason": str}
+    """
+    import os, requests, json
+    key = os.getenv("OPENAI_API_KEY", "")
+    if not key:
+        return {"decision": "STAY OUT", "confidence": 0, "reason": "No OpenAI key"}
+
+    # Noticias recientes
+    news_str = "\n".join([
+        "  [" + i.get("source","") + "] " + i.get("title","")[:100]
+        for i in (news_items or [])[:15]
+    ]) or "  No news available"
+
+    # Macro
+    dxy  = fred.get("dxy", "N/A")
+    t10  = fred.get("t10y", "N/A")
+    fed  = fred.get("fedfunds", "N/A")
+
+    # Estado FTMO
+    bal  = account_info.get("balance", 25000) if account_info else 25000
+    eq   = account_info.get("equity",  25000) if account_info else 25000
+    dd   = round(25000 - eq, 2)
+    dd_pct = round(dd / 25000 * 100, 1)
+
+    # Signal info
+    sig_dir  = signal["signal"]
+    sig_conf = signal["confidence"]
+    price    = signal["price"]
+    e50      = signal["e50"]
+    t_ema    = signal["trend_ema"]
+    adx      = signal["adx"]
+    rsi_v    = signal["rsi"]
+    atr      = signal["atr"]
+    sl_pts   = signal["sl_dist"]
+    tp_pts   = signal["tp_dist"]
+    rr       = signal["rr"]
+
+    system = """You are an expert prop firm trader specializing in US30 (Dow Jones) intraday trading.
+Your goal is to help pass an FTMO $25k challenge with strict risk rules:
+- Daily loss limit: 5% ($1,250)
+- Total loss limit: 10% ($2,500) 
+- Target: +10% ($2,500)
+
+You will receive a technical setup and must decide whether to execute it based on:
+1. Technical quality (EMA alignment, ADX momentum, RSI levels)
+2. News context (is there any macro risk that contradicts the setup?)
+3. Current FTMO status (are we close to any limits?)
+
+Be decisive. When in doubt with good technicals and neutral news: EXECUTE.
+Only STAY OUT if there is a clear reason (bad news, near FTMO limits, contradicting macro).
+Respond ONLY in valid JSON."""
+
+    prompt = f"""TECHNICAL SETUP DETECTED on US30 (Dow Jones):
+Direction: {sig_dir}
+Price: {price:.0f} | EMA50 H1: {e50:.0f} | EMA200 H4: {t_ema:.0f}
+ADX: {adx} | RSI: {rsi_v} | ATR: {atr:.1f} pts
+SL: {sl_pts} pts | TP: {tp_pts} pts | RR: {rr}:1
+Technical confidence: {sig_conf}%
+
+FTMO STATUS:
+Balance: ${bal:.2f} | Equity: ${eq:.2f}
+Total DD: ${dd:.2f} ({dd_pct}%) -- limit is 10% ($2,500)
+Daily P&L: ${daily_pnl:.2f} -- limit is -5% (-$1,250)
+
+MACRO DATA (FRED):
+DXY: {dxy} | 10Y Yield: {t10}% | Fed Funds: {fed}%
+
+RECENT NEWS (real-time):
+{news_str}
+
+QUESTION: Should I execute this {sig_dir} trade on US30?
+
+Consider:
+- Is the technical setup valid? (H4 uptrend/downtrend confirmed by EMA200, H1 pullback to EMA50, ADX confirms momentum)
+- Do the news support or contradict this direction?
+- Is the macro environment favorable?
+- Are we safe within FTMO limits?
+
+Respond ONLY in JSON:
+{{"decision": "LONG" or "SHORT" or "STAY OUT", "confidence": 0-100, "reason": "specific reason max 150 chars"}}"""
+
+    try:
+        r = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"},
+            json={
+                "model": "gpt-4o",
+                "messages": [
+                    {"role": "system", "content": system},
+                    {"role": "user",   "content": prompt},
+                ],
+                "temperature": 0.2,
+                "response_format": {"type": "json_object"},
+            },
+            timeout=25,
+        )
+        data = r.json()
+        if "error" in data:
+            print("      [GPT] API error:", data["error"].get("message","")[:80])
+            return {"decision": "STAY OUT", "confidence": 0, "reason": "API error"}
+        content = data["choices"][0]["message"]["content"]
+        result  = json.loads(content)
+        dec     = result.get("decision", "STAY OUT").upper()
+        if dec not in ("LONG", "SHORT", "STAY OUT"):
+            dec = "STAY OUT"
+        return {
+            "decision":   dec,
+            "confidence": int(result.get("confidence", 50)),
+            "reason":     str(result.get("reason", ""))[:200],
+        }
+    except Exception as e:
+        print("      [GPT] error:", e)
+        return {"decision": "STAY OUT", "confidence": 0, "reason": str(e)[:100]}
+
 
 def run_cycle():
     print()
     print("=" * 52)
-    print("AURUM CYCLE --", datetime.now().strftime("%Y-%m-%d %H:%M"))
+    print("AURUM US30 CYCLE --", datetime.now().strftime("%Y-%m-%d %H:%M"))
     print("=" * 52)
 
-    # ── Sync MT5 positions ─────────────────────────────────
+    # Sync MT5
     try:
         synced  = sync_mt5_positions()
         mt5_acc = get_mt5_account()
@@ -46,6 +177,7 @@ def run_cycle():
                   " Profit:$"  + str(mt5_acc.get("profit","--")))
     except Exception as e:
         print("[sync] error:", e)
+        mt5_acc = None
 
     stats = get_stats()
     print("[portfolio] Equity:$" + str(stats["equity"]) +
@@ -54,249 +186,166 @@ def run_cycle():
         print("[portfolio] MAX positions reached")
         return None
 
-    # ── 1. Technical signal ────────────────────────────────
-    print("[1/7] Technical signal (EMA+RSI+ADX)...")
-    tech_signal, d1_candles = get_signal_from_mt5(verbose=False)
-    if tech_signal:
-        print("      Signal: " + format_signal_summary(tech_signal))
+    # 1. Signal engine US30
+    print("[1/5] Signal engine US30 (H4 EMA200 + H1 EMA50)...")
+    sig, h1_candles = get_signal_from_mt5(verbose=False)
+    if sig:
+        print("      " + format_signal_summary(sig))
     else:
         print("      No technical setup right now")
+        # Guardar ciclo sin decision y salir
+        cycle_data = {
+            "ts": datetime.now().isoformat(), "symbol": SYMBOL,
+            "decision": "STAY OUT", "confidence": 0,
+            "reason": "No technical setup",
+        }
+        save_cycle(cycle_data)
+        sync("AURUM US30: no setup")
+        return None
 
-    # Cache D1 history
+    # 2. Noticias
+    print("[2/5] Collecting news...")
     try:
-        fetch_ohlcv()
-    except Exception as e:
-        print("      [history]", e)
-
-    # ── 2. News ────────────────────────────────────────────
-    print("[2/7] Collecting news...")
-    rss   = collect_rss()
-    api   = fetch_newsapi()
-    try:
+        rss   = collect_rss()
         delta = fetch_deltaone()
-        if delta:
-            print("      [DeltaOne] " + str(len(delta)) + " items:")
-            for d in delta[:6]:
-                tag = "BREAK" if d.get("breaking") else ("GOLD" if d.get("relevant") else "----")
-                print("      [" + tag + "] " + d["title"][:80])
+        all_items = list({
+            i["title"]: i
+            for i in rss.get("news_items", []) + (delta or [])
+        }.values())[:25]
+        gpt_sent = analyze_news_gpt(all_items)
+        sentiment = gpt_sent.get("sentiment","NEUTRAL") if gpt_sent else "NEUTRAL"
+        print("      Items:" + str(len(all_items)) +
+              " Sentiment:" + str(sentiment))
+        for i in all_items[:4]:
+            print("      >> [" + i.get("source","") + "] " + i["title"][:70])
     except Exception as e:
-        delta = []
-        print("      [DeltaOne] unavailable:", e)
+        print("      [news] error:", e)
+        all_items = []
 
-    all_items = list({
-        i["title"]: i
-        for i in rss.get("news_items", []) + api + delta
-    }.values())[:30]
-
-    gpt = analyze_news_gpt(all_items)
-    if gpt:
-        news = gpt
-        news["news_items"] = all_items
-        print("      [GPT] Sentiment:" + str(gpt.get("sentiment")) +
-              " conf:" + str(gpt.get("confidence")) + "%")
-    else:
-        news = rss
-        news["news_items"] = all_items
-
-    print("      Total:" + str(len(all_items)) +
-          " Sentiment:" + str(news.get("sentiment")))
-    for i in all_items[:5]:
-        print("      >> [" + i["source"] + "] " + i["title"][:70])
-
-    # ── 3. FRED macro data ─────────────────────────────────
-    print("[3/7] FRED macro data...")
+    # 3. FRED macro
+    print("[3/5] FRED macro data...")
     fred = fred_get_all()
-    print("      " + str(fred.get("summary", "unavailable")))
+    print("      " + str(fred.get("summary","unavailable")))
 
-    # ── 4. Price feed ──────────────────────────────────────
-    print("[4/7] Price feed...")
-    price = get_technical_data()
-    print("      XAU/USD:" + str(price.get("price")) +
-          " Chg:" + str(price.get("change_pct")) + "%" +
-          " H:" + str(price.get("high")) +
-          " L:" + str(price.get("low")) +
-          " [" + str(price.get("source","")) + "]")
+    # 4. GPT arbitrator
+    print("[4/5] GPT-4o arbitrator...")
+    account_info = mt5_acc
 
-    # ── 5. Technical analysis (indicators) ─────────────────
-    print("[5/7] Technical analysis...")
-    tech = tech_analyze(price, d1_candles)
-    print("      Trend:" + str(tech.get("trend")) +
-          " RSI:" + str(tech.get("rsi_value")) +
-          " ADX:" + str(tech.get("adx")) +
-          " S:" + str(tech.get("support")) +
-          " R:" + str(tech.get("resistance")))
+    # Daily P&L from state
+    daily_pnl = 0.0
+    try:
+        history = load_history()
+        today = datetime.now().strftime("%Y-%m-%d")
+        today_trades = [c for c in history if c.get("ts","")[:10] == today]
+        daily_pnl = sum(
+            c.get("risk_plan",{}).get("pnl_realized",0)
+            for c in today_trades
+        )
+    except: pass
 
-    # ── 6. News filter + Macro filter ──────────────────────
-    print("[6/7] News filter + Macro filter...")
-
-    # News filter
-    if tech_signal:
-        direction   = tech_signal["signal"]
-        delta_items = [i for i in all_items if i.get("source") == "DeltaOne"]
-        other_items = [i for i in all_items if i.get("source") != "DeltaOne"]
-        news_verdict = news_filter_analyze(direction, other_items, fred, delta_items)
-        print("      [News] " + news_verdict["verdict"] +
-              " (" + str(news_verdict["confidence"]) + "%) — " +
-              news_verdict["reason"][:80])
-    else:
-        direction    = "LONG"
-        news_verdict = {"verdict": "NEUTRAL", "confidence": 50,
-                        "reason": "No technical signal to evaluate"}
-        print("      [News] NEUTRAL — no technical signal")
-
-    # ── 7. Risk + Arbitrator ───────────────────────────────
-    print("[7/7] Risk + Arbitrator...")
-    account_info = None
-    if MT5_ENABLED:
-        try:
-            from agents.mt5_broker import connect, get_account_summary, disconnect
-            if connect(MT5_LOGIN, MT5_PASSWORD, MT5_SERVER):
-                account_info = get_account_summary()
-                disconnect()
-        except Exception as e:
-            print("      [MT5]", e)
-
-    # Macro filter (needs account_info for FTMO checks)
-    macro_verdict = macro_filter_check(direction, fred, account_info, daily_pnl=0.0)
-    print("      [Macro] " + macro_verdict["verdict"] +
-          " | size_mult=" + str(macro_verdict["size_multiplier"]))
-    for w in macro_verdict.get("warnings", []):
-        print("      [Macro] WARN: " + w)
-    for r in macro_verdict.get("reasons", []):
-        print("      [Macro] VETO: " + r)
-
-    # Risk management
-    risk = risk_calc(
-        tech_signal,
-        price,
-        account_info.get("balance") if account_info else None
-    )
-    if risk.get("valid"):
-        print("      Risk:" + str(risk.get("direction")) +
-              " RR=" + str(risk.get("risk_reward")) +
-              " $" + str(risk.get("risk_usd")) +
-              " Lots=" + str(risk.get("contracts")))
-    else:
-        print("      Risk INVALID:" + str(risk.get("reason")))
-
-    # Apply size multiplier from macro filter
-    if macro_verdict.get("size_multiplier", 1.0) < 1.0 and risk.get("valid"):
-        mult = macro_verdict["size_multiplier"]
-        risk["contracts"] = round(risk.get("contracts", 0.01) * mult, 2)
-        risk["risk_usd"]  = round(risk.get("risk_usd", 0) * mult, 2)
-        print("      [Macro] Size reduced to " + str(mult*100) + "% — lots=" + str(risk["contracts"]))
-
-    # Arbitrator
-    final    = arbitrate(tech_signal, news_verdict, macro_verdict, risk)
-    decision = final.get("decision")
+    gpt_result = gpt_arbitrator(sig, all_items, fred, account_info, daily_pnl)
+    decision   = gpt_result["decision"]
+    confidence = gpt_result["confidence"]
+    reason     = gpt_result["reason"]
 
     print()
-    print(">>> DECISION: " + decision + " conf:" + str(final.get("confidence")) + "%")
-    print("    " + str(final.get("reason", "")))
+    print(">>> GPT DECISION: " + decision + " (" + str(confidence) + "%)")
+    print("    " + reason)
+    print()
 
-    # ── Execute order ──────────────────────────────────────
+    # 5. Execute
     ticket = None
-    if risk.get("valid") and decision in ("LONG", "SHORT"):
-        from utils.market_hours import is_market_open
-        mkt_open, mkt_reason = is_market_open()
-        print("    [Market] " + mkt_reason)
-        if not mkt_open:
-            print("    [MT5] Market closed — order skipped")
+    price  = sig["price"]
+    sl_pts = sig["sl_dist"]
+    tp_pts = sig["tp_dist"]
+
+    if decision in ("LONG", "SHORT"):
+        # Sizing: 1% riesgo
+        bal      = account_info.get("balance", 25000) if account_info else 25000
+        risk_usd = round(bal * RISK_PCT, 2)
+        lots     = round(max(0.01, min(risk_usd / (sl_pts * LOT_SIZE), 50.0)), 2)
+        print("[5/5] Executing order...")
+        print("      Direction: " + decision)
+        print("      Entry: ~" + str(round(price,0)) +
+              " | SL: " + str(sl_pts) + "pts | TP: " + str(tp_pts) + "pts")
+        print("      Lots: " + str(lots) + " | Risk: $" + str(risk_usd))
+
+        if MT5_ENABLED:
             try:
-                from utils.telegram_alerts import send
-                send("AURUM: " + decision + " signal @ $" + str(price.get("price")) +
-                     " — market closed\n" + mkt_reason)
-            except: pass
-        elif MT5_ENABLED:
-            print("    Entry:$" + str(risk.get("entry")) +
-                  " SL:$" + str(risk.get("stop_loss")) +
-                  " TP:$" + str(risk.get("take_profit")) +
-                  " Lots:" + str(risk.get("contracts")))
-            try:
-                from agents.mt5_broker import connect, open_trade, disconnect
-                if connect(MT5_LOGIN, MT5_PASSWORD, MT5_SERVER):
-                    r = open_trade(
-                        decision,
-                        max(0.01, round(risk["contracts"], 2)),
-                        risk["stop_loss"],
-                        risk["take_profit"]
-                    )
-                    if r:
-                        ticket = r["ticket"]
-                        print("    [MT5] ORDER PLACED ticket=" + str(ticket))
-                    disconnect()
+                import MetaTrader5 as mt5
+                if mt5.initialize() and mt5.login(MT5_LOGIN, MT5_PASSWORD, MT5_SERVER):
+                    tick  = mt5.symbol_info_tick(SYMBOL)
+                    if decision == "LONG":
+                        entry = tick.ask
+                        sl    = round(entry - sl_pts, 2)
+                        tp    = round(entry + tp_pts, 2)
+                        otype = mt5.ORDER_TYPE_BUY
+                    else:
+                        entry = tick.bid
+                        sl    = round(entry + sl_pts, 2)
+                        tp    = round(entry - tp_pts, 2)
+                        otype = mt5.ORDER_TYPE_SELL
+
+                    req = {
+                        "action":       mt5.TRADE_ACTION_DEAL,
+                        "symbol":       SYMBOL,
+                        "volume":       lots,
+                        "type":         otype,
+                        "price":        entry,
+                        "sl":           sl,
+                        "tp":           tp,
+                        "deviation":    30,
+                        "magic":        123456,
+                        "comment":      "AURUM_US30",
+                        "type_time":    mt5.ORDER_TIME_GTC,
+                        "type_filling": mt5.ORDER_FILLING_IOC,
+                    }
+                    result = mt5.order_send(req)
+                    mt5.shutdown()
+                    if result and result.retcode == mt5.TRADE_RETCODE_DONE:
+                        ticket = result.order
+                        print("      [MT5] ORDER PLACED ticket=" + str(ticket))
+                    else:
+                        err = result.comment if result else "unknown"
+                        print("      [MT5] FAILED: " + str(err))
             except Exception as e:
-                print("    [MT5] Error:", e)
+                print("      [MT5] error:", e)
+    else:
+        print("[5/5] STAY OUT -- no order placed")
 
-    # ── Save cycle ─────────────────────────────────────────
+    # Save cycle
     cycle_data = {
-        "ts":           datetime.now().isoformat(),
-        "price":        price.get("price"),
-        "change_pct":   price.get("change_pct"),
-        "decision":     decision,
-        "confidence":   final.get("confidence"),
-        "reason":       final.get("reason"),
-        "risk_plan":    risk,
-        "mt5_ticket":   ticket,
-        "news_items":   all_items[:10],
-        "fred":         fred,
-        "ftmo_status":  macro_verdict.get("ftmo", {}),
-        "tech_signal":  tech_signal,
-        "news_verdict": news_verdict,
-        "macro_verdict":{"verdict": macro_verdict["verdict"],
-                         "size_multiplier": macro_verdict["size_multiplier"]},
-        "technical": {
-            "trend":      tech.get("trend"),
-            "rsi_value":  tech.get("rsi_value"),
-            "rsi_zone":   tech.get("rsi_zone"),
-            "adx":        tech.get("adx"),
-            "support":    tech.get("support"),
-            "resistance": tech.get("resistance"),
-            "sma20":      tech.get("sma20"),
-            "ema9":       tech.get("ema9"),
-            "ema21":      tech.get("ema21"),
-            "ema50":      tech.get("ema50"),
-            "bias":       tech.get("bias"),
-        },
-        "debate_summary": {
-            "winner":    tech_signal["signal"] if tech_signal else "NONE",
-            "bull_conf": tech_signal["confidence"] if tech_signal else 0,
-            "bear_conf": 0,
-            "margin":    100 if tech_signal else 0,
-            "is_tie":    tech_signal is None,
-        },
-        "macro": {
-            "bias":       fred.get("macro_bias", "NEUTRAL"),
-            "confidence": 65,
-            "drivers":    [],
-        },
-        "portfolio": stats,
+        "ts":         datetime.now().isoformat(),
+        "symbol":     SYMBOL,
+        "price":      price,
+        "decision":   decision,
+        "confidence": confidence,
+        "reason":     reason,
+        "signal":     sig,
+        "gpt_result": gpt_result,
+        "fred":       fred,
+        "mt5_ticket": ticket,
+        "portfolio":  stats,
     }
-
-    if decision in ("LONG", "SHORT") and risk.get("valid"):
+    if decision in ("LONG","SHORT") and ticket:
         add_position(cycle_data, ticket=ticket)
-        print("    [portfolio] Position recorded")
 
-    folder = save_cycle(cycle_data)
-    gen_html(latest=cycle_data, history=load_history(), stats=stats)
-    print("[SAVED]", folder)
+    save_cycle(cycle_data)
+
+    try:
+        gen_html(latest=cycle_data, history=load_history(), stats=stats)
+    except Exception as e:
+        print("[dashboard] error:", e)
 
     try:
         from utils.telegram_alerts import alert_decision
         alert_decision(cycle_data)
     except Exception as e:
-        print("[telegram]", e)
+        print("[telegram] error:", e)
 
-    try:
-        from training.feedback import sync_closed_positions
-        insights, patterns = sync_closed_positions()
-        if insights:
-            print("[training]", insights[0])
-    except Exception as e:
-        print("[training]", e)
-
-    sync("AURUM: " + decision + " @ " + str(price.get("price")))
+    sync("AURUM US30: " + decision + " @ " + str(round(price,0)))
     return cycle_data
+
 
 if __name__ == "__main__":
     run_cycle()
