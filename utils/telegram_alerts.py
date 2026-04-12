@@ -12,8 +12,8 @@ import os
 import requests
 from datetime import datetime, timezone
 
-TELEGRAM_TOKEN   = os.getenv("TELEGRAM_TOKEN",   "8745728388:AAFkfd5-zJcbNDC3lewR4mRwyOb8g8k3rig")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "967115673")
+TELEGRAM_TOKEN   = os.getenv("TELEGRAM_TOKEN",   "")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 OPENAI_KEY       = os.getenv("OPENAI_API_KEY",   "")
 
 
