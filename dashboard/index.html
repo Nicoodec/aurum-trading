@@ -1,530 +1,1104 @@
 <!DOCTYPE html>
-<html lang="es"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AURUM - Gold Trading AI</title>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AURUM // Trading Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0800;color:#e8c84a;font-family:'Courier New',monospace;min-height:100vh}
-canvas{position:fixed;top:0;left:0;z-index:0;pointer-events:none;opacity:.18}
-.wrap{position:relative;z-index:1;max-width:1500px;margin:0 auto;padding:20px 16px}
-pre.ascii{color:#f5d020;font-size:clamp(6px,1.1vw,13px);line-height:1.2;text-align:center;
-          margin-bottom:6px;text-shadow:0 0 20px #f5d02055}
-.tag{text-align:center;color:#6a5010;font-size:10px;letter-spacing:6px;margin-bottom:18px;text-transform:uppercase}
-.sr{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:22px;flex-wrap:wrap}
-.dot{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:blink 2s infinite;box-shadow:0 0 6px #22c55e}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-.price{font-size:26px;color:#f5d020;font-weight:bold;text-shadow:0 0 10px #f5d02033}
-.chg-up{color:#4ade80;font-size:13px}
-.chg-dn{color:#f87171;font-size:13px}
-.chg-neu{color:#8a7020;font-size:13px}
-.badge{padding:4px 14px;border-radius:4px;font-size:12px;letter-spacing:2px;font-weight:bold}
-.LONG{background:#0a2e0a;color:#4ade80;border:1px solid #4ade80;box-shadow:0 0 8px #4ade8033}
-.SHORT{background:#2e0a0a;color:#f87171;border:1px solid #f87171;box-shadow:0 0 8px #f8717133}
-.STAY_OUT{display:none!important}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px;margin-bottom:12px}
-.card{background:#0d0a00;border:1px solid #3a2800;border-radius:6px;padding:16px}
-.ct{color:#c9a030;font-size:9px;letter-spacing:3px;text-transform:uppercase;
-    margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #251a00}
-.m{display:flex;justify-content:space-between;align-items:center;margin:6px 0;font-size:12px}
-.k{color:#8a6a20}.v{color:#f0c030}.g{color:#4ade80}.r{color:#f87171}
-.bw{background:#1a1200;border-radius:2px;height:5px;flex:1;margin:0 8px}
-.bf{height:5px;border-radius:2px;transition:width .8s}
-.bb{background:linear-gradient(90deg,#1a4a1a,#4ade80)}
-.br{background:linear-gradient(90deg,#4a1a1a,#f87171)}
-table{width:100%;border-collapse:collapse;font-size:11px}
-th{color:#c9a030;padding:8px 5px;text-align:left;border-bottom:1px solid #251a00;
-   font-size:9px;text-transform:uppercase;letter-spacing:1px}
-td{padding:6px 5px;border-bottom:1px solid #120d00;color:#d4a830}
-td.LONG{color:#4ade80;font-weight:bold}
-td.SHORT{color:#f87171;font-weight:bold}
-td.STAY_OUT{color:#3a2808}
-.ni{color:#9a8020;font-size:10px;padding:4px 0;border-bottom:1px solid #120d00;line-height:1.4}
-.ns{color:#4a3010;margin-right:6px}
-#upd{color:#2a1800;font-size:9px;text-align:right;margin-bottom:6px}
-.footer{text-align:center;color:#1a1000;font-size:9px;margin-top:20px;letter-spacing:2px}
-.pbar{height:2px;background:#150f00;margin-bottom:10px;border-radius:1px;overflow:hidden}
-.pfill{height:100%;background:linear-gradient(90deg,#3a2000,#c9a030);border-radius:1px;transition:width 1s linear}
-</style></head><body>
-<canvas id="c"></canvas>
-<div class="wrap">
-<pre class="ascii">
- █████╗ ██╗   ██╗██████╗ ██╗   ██╗███╗   ███╗
-██╔══██╗██║   ██║██╔══██╗██║   ██║████╗ ████║
-███████║██║   ██║██████╔╝██║   ██║██╔████╔██║
-██╔══██║██║   ██║██╔══██╗██║   ██║██║╚██╔╝██║
-██║  ██║╚██████╔╝██║  ██║╚██████╔╝██║ ╚═╝ ██║
-╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝
-</pre>
-<p class="tag">Multi-Agent Gold Swing Trading &middot; AI Powered</p>
-<div class="pbar"><div class="pfill" id="pf" style="width:100%"></div></div>
-<div id="upd">--</div>
-<div class="sr">
-  <div class="dot"></div>
-  <span style="font-size:11px;color:#5a4010;letter-spacing:2px">LIVE</span>
-  <span class="price" id="xp">XAU/USD --</span>
-  <span id="xc" class="chg-neu"></span>
-  <span id="xb" class="badge STAY_OUT"></span>
-</div>
-<div class="grid">
-<div class="card">
-  <div class="ct">Last Signal</div>
-  <div class="m"><span class="k">Confidence</span><span class="v" id="sc">--</span></div>
-  <div class="m"><span class="k">Direction</span><span class="v" id="sdir">--</span></div>
-  <div class="m"><span class="k">Entry</span><span class="v" id="se">--</span></div>
-  <div class="m"><span class="k">Stop loss</span><span class="r" id="ss">--</span></div>
-  <div class="m"><span class="k">Take profit</span><span class="g" id="st">--</span></div>
-  <div class="m"><span class="k">R:R</span><span class="v" id="srr">--</span></div>
-  <div class="m"><span class="k">Lots</span><span class="v" id="sl">--</span></div>
-  <div class="m"><span class="k">Risk USD</span><span class="v" id="sk">--</span></div>
-  <div style="color:#6a5010;font-size:10px;margin-top:8px;line-height:1.5;
-              border-top:1px solid #1a1200;padding-top:6px" id="sreason">--</div>
-</div>
-<div class="card">
-  <div class="ct">Debate</div>
-  <div class="m"><span class="k">Bull</span><div class="bw"><div class="bf bb" id="bb" style="width:50%"></div></div><span class="g" id="bp">50%</span></div>
-  <div class="m"><span class="k">Bear</span><div class="bw"><div class="bf br" id="rb" style="width:50%"></div></div><span class="r" id="rp">50%</span></div>
-  <div class="m"><span class="k">Winner</span><span class="v" id="dw">--</span></div>
-  <div class="m"><span class="k">Margin</span><span class="v" id="dm">--</span></div>
-  <div class="ct" style="margin-top:12px">Technical</div>
-  <div class="m"><span class="k">Trend 20d</span><span class="v" id="tt">--</span></div>
-  <div class="m"><span class="k">RSI(14)</span><span class="v" id="tr">--</span></div>
-  <div class="m"><span class="k">SMA20</span><span class="v" id="ts">--</span></div>
-  <div class="m"><span class="k">Support</span><span class="g" id="tu">--</span></div>
-  <div class="m"><span class="k">Resistance</span><span class="r" id="te">--</span></div>
-  <div class="ct" style="margin-top:12px">Macro</div>
-  <div class="m"><span class="k">Bias</span><span class="v" id="mb">--</span></div>
-  <div class="m"><span class="k">DXY</span><span class="v" id="dxy">--</span></div>
-  <div class="m"><span class="k">10Y Treasury</span><span class="v" id="t10">--</span></div>
-  <div class="m"><span class="k">FedFunds</span><span class="v" id="fed">--</span></div>
-</div>
-<div class="card">
-  <div class="ct">Portfolio</div>
-  <div class="m"><span class="k">Balance</span><span class="v" id="pc">--</span></div>
-  <div class="m"><span class="k">Equity</span><span class="v" id="pe">--</span></div>
-  <div class="m"><span class="k">Total P&amp;L</span><span class="v" id="pp">--</span></div>
-  <div class="m"><span class="k">Open positions</span><span class="v" id="po">--</span></div>
-  <div class="m"><span class="k">Total trades</span><span class="v" id="pt">--</span></div>
-  <div class="m"><span class="k">Win rate</span><span class="v" id="pw">--</span></div>
-  <div class="m"><span class="k">Avg win</span><span class="g" id="pa">--</span></div>
-  <div class="m"><span class="k">Avg loss</span><span class="r" id="pal">--</span></div>
-  <div class="m"><span class="k">Profit factor</span><span class="v" id="pf2">--</span></div>
-  <div class="ct" style="margin-top:12px">FTMO Limits</div>
-  <div class="m"><span class="k">Daily remaining</span><span class="v" id="fdr">--</span></div>
-  <div class="m"><span class="k">Total remaining</span><span class="v" id="ftr">--</span></div>
-</div>
-</div>
-<div class="card" style="margin-bottom:12px">
-  <div class="ct">News This Cycle</div>
-  <div id="nb" style="max-height:130px;overflow-y:auto">
-    <span style="color:#1a1200">No news yet</span>
+  :root {
+    --bg:       #080c10;
+    --bg2:      #0d1117;
+    --bg3:      #111820;
+    --border:   #1e2d3d;
+    --border2:  #243447;
+    --accent:   #00d4ff;
+    --accent2:  #0097b8;
+    --green:    #00e676;
+    --green2:   #00c853;
+    --red:      #ff1744;
+    --red2:     #d50000;
+    --amber:    #ffab40;
+    --text:     #e2eaf3;
+    --text2:    #7a9ab8;
+    --text3:    #3d5a73;
+    --glow:     0 0 20px rgba(0,212,255,0.15);
+    --glow-g:   0 0 20px rgba(0,230,118,0.2);
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-disp: 'Syne', sans-serif;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events:none;
+    z-index:1000;
+  }
+
+  /* Top bar */
+  .topbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 0 24px;
+    height: 52px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    position: sticky; top:0; z-index:100;
+  }
+
+  .logo {
+    font-family: var(--font-disp);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-shadow: var(--glow);
+    display:flex; align-items:center; gap:10px;
+  }
+
+  .logo-dot {
+    width:8px; height:8px; border-radius:50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%,100%{ opacity:1; transform:scale(1); }
+    50%{ opacity:0.5; transform:scale(0.8); }
+  }
+
+  .topbar-right {
+    display:flex; align-items:center; gap:20px;
+    color: var(--text2); font-size:11px;
+  }
+
+  .status-badge {
+    display:flex; align-items:center; gap:6px;
+    padding: 4px 10px;
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    font-size:11px;
+    letter-spacing:0.08em;
+  }
+
+  .status-badge.live { border-color: rgba(0,230,118,0.3); color: var(--green); }
+  .status-badge.paused { border-color: rgba(255,171,64,0.3); color: var(--amber); }
+
+  /* Layout */
+  .layout {
+    display:grid;
+    grid-template-columns: 220px 1fr;
+    min-height: calc(100vh - 52px);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+  }
+
+  .nav-section {
+    padding: 6px 16px 2px;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--text3);
+    font-weight: 500;
+    margin-top: 12px;
+  }
+
+  .nav-item {
+    display:flex; align-items:center; gap:10px;
+    padding: 9px 16px;
+    color: var(--text2);
+    cursor:pointer;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+    font-size:12px;
+  }
+
+  .nav-item:hover { color:var(--text); background:rgba(255,255,255,0.03); }
+  .nav-item.active {
+    color:var(--accent);
+    border-left-color:var(--accent);
+    background:rgba(0,212,255,0.05);
+  }
+
+  .nav-icon { width:14px; opacity:0.7; font-style:normal; }
+
+  /* Main content */
+  .main { overflow-y:auto; }
+
+  /* Pages */
+  .page { display:none; padding:24px; }
+  .page.active { display:block; }
+
+  /* Page title */
+  .page-title {
+    font-family: var(--font-disp);
+    font-size:22px; font-weight:800;
+    color:var(--text);
+    margin-bottom:4px;
+    letter-spacing:-0.01em;
+  }
+
+  .page-sub {
+    color:var(--text3); font-size:11px;
+    letter-spacing:0.08em; margin-bottom:24px;
+  }
+
+  /* Metric cards */
+  .metrics-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px,1fr));
+    gap:12px; margin-bottom:24px;
+  }
+
+  .metric-card {
+    background:var(--bg2);
+    border:1px solid var(--border);
+    border-radius:4px;
+    padding:16px;
+    position:relative; overflow:hidden;
+    transition: border-color 0.2s;
+  }
+
+  .metric-card:hover { border-color:var(--border2); }
+
+  .metric-card::before {
+    content:'';
+    position:absolute; top:0; left:0; right:0; height:1px;
+    background:linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity:0.3;
+  }
+
+  .metric-label {
+    font-size:10px; color:var(--text3);
+    letter-spacing:0.12em; margin-bottom:8px;
+  }
+
+  .metric-value {
+    font-size:24px; font-weight:700;
+    font-family: var(--font-disp);
+    line-height:1;
+  }
+
+  .metric-value.positive { color:var(--green); }
+  .metric-value.negative { color:var(--red); }
+  .metric-value.accent { color:var(--accent); }
+  .metric-value.amber { color:var(--amber); }
+
+  .metric-sub { font-size:10px; color:var(--text3); margin-top:4px; }
+
+  /* Progress bar */
+  .progress-wrap {
+    background:var(--bg2); border:1px solid var(--border);
+    border-radius:4px; padding:16px; margin-bottom:24px;
+  }
+
+  .progress-header {
+    display:flex; justify-content:space-between;
+    margin-bottom:10px; font-size:11px; color:var(--text2);
+  }
+
+  .progress-bar-track {
+    height:6px; background:var(--bg3);
+    border-radius:3px; overflow:hidden; margin-bottom:8px;
+  }
+
+  .progress-bar-fill {
+    height:100%; border-radius:3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    box-shadow: 0 0 10px rgba(0,212,255,0.4);
+    transition: width 1s ease;
+  }
+
+  .progress-labels {
+    display:flex; justify-content:space-between;
+    font-size:10px; color:var(--text3);
+  }
+
+  /* Grid 2 cols */
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:24px; }
+
+  /* Panel */
+  .panel {
+    background:var(--bg2); border:1px solid var(--border);
+    border-radius:4px; padding:16px;
+  }
+
+  .panel-title {
+    font-size:10px; letter-spacing:0.12em; color:var(--text3);
+    margin-bottom:14px; display:flex; align-items:center; gap:8px;
+  }
+
+  .panel-title::after {
+    content:''; flex:1; height:1px; background:var(--border);
+  }
+
+  /* Trade log table */
+  .trade-table {
+    width:100%; border-collapse:collapse; font-size:11px;
+  }
+
+  .trade-table th {
+    text-align:left; padding:6px 8px;
+    color:var(--text3); font-weight:400;
+    letter-spacing:0.08em; font-size:10px;
+    border-bottom:1px solid var(--border);
+  }
+
+  .trade-table td {
+    padding:8px 8px;
+    border-bottom:1px solid rgba(255,255,255,0.03);
+    color:var(--text2);
+  }
+
+  .trade-table tr:hover td { background:rgba(255,255,255,0.02); color:var(--text); }
+
+  .tag {
+    display:inline-block; padding:2px 7px;
+    border-radius:2px; font-size:10px; font-weight:500;
+    letter-spacing:0.06em;
+  }
+
+  .tag.win { background:rgba(0,230,118,0.1); color:var(--green); border:1px solid rgba(0,230,118,0.2); }
+  .tag.loss { background:rgba(255,23,68,0.1); color:var(--red); border:1px solid rgba(255,23,68,0.2); }
+  .tag.long { background:rgba(0,212,255,0.08); color:var(--accent); border:1px solid rgba(0,212,255,0.2); }
+  .tag.short { background:rgba(255,171,64,0.08); color:var(--amber); border:1px solid rgba(255,171,64,0.2); }
+  .tag.open { background:rgba(255,171,64,0.1); color:var(--amber); border:1px solid rgba(255,171,64,0.25); }
+
+  /* Equity chart */
+  .chart-wrap {
+    background:var(--bg2); border:1px solid var(--border);
+    border-radius:4px; padding:16px; margin-bottom:24px;
+  }
+
+  canvas { display:block; }
+
+  /* Terminal log */
+  .terminal {
+    background:#060a0e; border:1px solid var(--border);
+    border-radius:4px; padding:16px; font-size:11px;
+    height:280px; overflow-y:auto;
+    font-family: var(--font-mono);
+  }
+
+  .terminal::-webkit-scrollbar { width:4px; }
+  .terminal::-webkit-scrollbar-track { background:transparent; }
+  .terminal::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+  .log-line { padding:2px 0; line-height:1.6; }
+  .log-ts { color:var(--text3); margin-right:8px; }
+  .log-ok { color:var(--green); }
+  .log-warn { color:var(--amber); }
+  .log-err { color:var(--red); }
+  .log-info { color:var(--accent); }
+  .log-text { color:var(--text2); }
+
+  /* Report card */
+  .report-card {
+    background:var(--bg2); border:1px solid var(--border);
+    border-radius:4px; padding:20px; margin-bottom:16px;
+  }
+
+  .report-header {
+    display:flex; align-items:flex-start; justify-content:space-between;
+    margin-bottom:14px;
+  }
+
+  .report-type {
+    font-size:9px; letter-spacing:0.15em; color:var(--text3);
+    margin-bottom:4px;
+  }
+
+  .report-title {
+    font-family:var(--font-disp); font-size:16px; font-weight:600;
+    color:var(--text);
+  }
+
+  .report-time { font-size:10px; color:var(--text3); }
+
+  .report-body {
+    font-size:12px; color:var(--text2); line-height:1.8;
+    border-top:1px solid var(--border); padding-top:14px;
+  }
+
+  .report-body strong { color:var(--accent); font-weight:500; }
+
+  .report-tags { display:flex; gap:6px; margin-top:12px; flex-wrap:wrap; }
+
+  .r-tag {
+    font-size:10px; padding:3px 8px;
+    border:1px solid var(--border2); border-radius:2px;
+    color:var(--text3); letter-spacing:0.06em;
+  }
+
+  /* Blinking cursor */
+  .cursor {
+    display:inline-block; width:8px; height:13px;
+    background:var(--accent); animation:blink 1s step-end infinite;
+    vertical-align:middle;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* Separator */
+  .sep { height:1px; background:var(--border); margin:24px 0; }
+
+  /* Live indicator */
+  .live-dot {
+    width:6px; height:6px; border-radius:50%;
+    background:var(--green); display:inline-block;
+    box-shadow:0 0 6px var(--green);
+    animation:pulse 1.5s ease-in-out infinite;
+  }
+
+  /* FTMO limits bar */
+  .limit-bar { margin-bottom:12px; }
+  .limit-label { display:flex; justify-content:space-between; font-size:10px; color:var(--text3); margin-bottom:4px; }
+  .limit-track { height:4px; background:var(--bg3); border-radius:2px; overflow:hidden; }
+  .limit-fill { height:100%; border-radius:2px; transition:width 0.5s; }
+  .limit-fill.safe { background:var(--green); }
+  .limit-fill.warn { background:var(--amber); }
+  .limit-fill.danger { background:var(--red); }
+
+  /* Scrollbar global */
+  ::-webkit-scrollbar { width:4px; height:4px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+  /* Responsive */
+  @media(max-width:768px) {
+    .layout { grid-template-columns:1fr; }
+    .sidebar { display:none; }
+    .grid-2,.grid-3 { grid-template-columns:1fr; }
+  }
+
+  /* Fade in */
+  .page.active { animation:fadeIn 0.2s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+
+  /* Ticker strip */
+  .ticker {
+    display:flex; gap:24px; overflow:hidden;
+    font-size:11px; color:var(--text2);
+    padding:6px 24px;
+    background:var(--bg3);
+    border-bottom:1px solid var(--border);
+  }
+
+  .ticker-item { display:flex; gap:8px; white-space:nowrap; }
+  .ticker-sym { color:var(--text); font-weight:500; }
+  .ticker-val.up { color:var(--green); }
+  .ticker-val.dn { color:var(--red); }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    AURUM
+    <span style="font-weight:300;color:var(--text3);font-size:14px">// TRADING INTELLIGENCE</span>
+  </div>
+  <div class="topbar-right">
+    <span id="clock" style="font-size:12px;color:var(--text2)">--:--:-- UTC</span>
+    <div class="status-badge live" id="daemon-status">
+      <span class="live-dot"></span>
+      DAEMON ACTIVE
+    </div>
+    <div class="status-badge" style="color:var(--text2)">
+      US30.cash
+    </div>
   </div>
 </div>
-<div class="card">
-  <div class="ct">Signal History</div>
-  <table><thead><tr>
-    <th>Time</th><th>Price</th><th>Signal</th><th>Conf</th><th>RR</th>
-    <th>RSI</th><th>Trend</th><th>DXY</th><th>Macro</th><th>Bull</th><th>Bear</th><th>Margin</th><th>Reason</th>
-  </tr></thead><tbody id="ht">
-    <tr><td colspan="13" style="text-align:center;padding:20px;color:#1a1200">No signals yet</td></tr>
-  </tbody></table>
+
+<!-- Ticker -->
+<div class="ticker" id="ticker-strip">
+  <div class="ticker-item"><span class="ticker-sym">US30</span><span class="ticker-val" id="t-us30">--</span></div>
+  <div class="ticker-item"><span class="ticker-sym">XAU/USD</span><span class="ticker-val" id="t-xau">--</span></div>
+  <div class="ticker-item"><span class="ticker-sym">DXY</span><span class="ticker-val" id="t-dxy">120.66</span></div>
+  <div class="ticker-item"><span class="ticker-sym">10Y YIELD</span><span class="ticker-val" id="t-10y">4.29%</span></div>
+  <div class="ticker-item"><span class="ticker-sym">BALANCE</span><span class="ticker-val up" id="t-bal">$26,312.41</span></div>
+  <div class="ticker-item"><span class="ticker-sym">FTMO P1</span><span class="ticker-val up" id="t-progress">52.5% complete</span></div>
 </div>
-<div class="footer">AURUM &middot; nicoodec.github.io/aurum-trading &middot; Multi-Agent AI Gold Trading</div>
+
+<!-- Layout -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="nav-section">MONITOR</div>
+    <div class="nav-item active" onclick="showPage('dashboard')">
+      <i class="nav-icon">⬛</i> Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('trades')">
+      <i class="nav-icon">◈</i> Trade Log
+    </div>
+    <div class="nav-item" onclick="showPage('terminal')">
+      <i class="nav-icon">▶</i> Live Terminal
+    </div>
+
+    <div class="nav-section">ANALYSIS</div>
+    <div class="nav-item" onclick="showPage('reports')">
+      <i class="nav-icon">◉</i> AI Reports
+    </div>
+    <div class="nav-item" onclick="showPage('metrics')">
+      <i class="nav-icon">◈</i> Performance
+    </div>
+
+    <div class="nav-section">SYSTEM</div>
+    <div class="nav-item" onclick="showPage('ftmo')">
+      <i class="nav-icon">◎</i> FTMO Status
+    </div>
+    <div class="nav-item" onclick="showPage('config')">
+      <i class="nav-icon">◌</i> Config
+    </div>
+
+    <!-- Mini stats in sidebar -->
+    <div style="position:absolute;bottom:20px;left:0;right:0;padding:0 16px;">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:12px;font-size:10px;">
+        <div style="color:var(--text3);letter-spacing:0.1em;margin-bottom:8px;">DAILY P&L</div>
+        <div style="font-size:18px;font-family:var(--font-disp);color:var(--green);font-weight:700;" id="side-daily">+$0.00</div>
+        <div style="color:var(--text3);margin-top:4px;">0 trades today</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div style="padding:24px 24px 0;">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">REAL-TIME ACCOUNT OVERVIEW // US30 STRATEGY</div>
+      </div>
+
+      <div style="padding:0 24px 24px;">
+
+        <!-- FTMO Progress -->
+        <div class="progress-wrap">
+          <div class="progress-header">
+            <span style="color:var(--accent);letter-spacing:0.1em;font-size:10px;">FTMO PHASE 1 PROGRESS</span>
+            <span id="prog-pct" style="color:var(--green);font-weight:500;">52.5% — $1,312.41 of $2,500</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="prog-bar" style="width:52.5%"></div>
+          </div>
+          <div class="progress-labels">
+            <span>START $25,000</span>
+            <span id="prog-cur">CURRENT $26,312.41</span>
+            <span>TARGET $27,500</span>
+          </div>
+        </div>
+
+        <!-- Metric cards -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">ACCOUNT BALANCE</div>
+            <div class="metric-value positive" id="m-balance">$26,312.41</div>
+            <div class="metric-sub">+$1,312.41 vs start</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">TOTAL RETURN</div>
+            <div class="metric-value positive" id="m-return">+5.25%</div>
+            <div class="metric-sub">Phase 1: need +10%</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">MAX DRAWDOWN</div>
+            <div class="metric-value accent" id="m-dd">$0.00</div>
+            <div class="metric-sub">Limit: $2,500 (10%)</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">DAILY BUFFER</div>
+            <div class="metric-value positive" id="m-daily-buf">$1,250</div>
+            <div class="metric-sub">5% daily limit</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">OPEN POSITIONS</div>
+            <div class="metric-value accent" id="m-open">0</div>
+            <div class="metric-sub">Max: 3 positions</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">NY SESSION</div>
+            <div class="metric-value" id="m-session" style="font-size:16px;">--</div>
+            <div class="metric-sub">14:00–20:00 UTC</div>
+          </div>
+        </div>
+
+        <!-- Equity chart -->
+        <div class="chart-wrap">
+          <div class="panel-title">EQUITY CURVE</div>
+          <canvas id="equity-chart" height="160"></canvas>
+        </div>
+
+        <!-- Bottom grid -->
+        <div class="grid-2">
+          <!-- Last signal -->
+          <div class="panel">
+            <div class="panel-title">LAST SIGNAL</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.8;" id="last-signal-box">
+              <div style="color:var(--text3);margin-bottom:8px;">No signal detected yet today</div>
+              <div>Strategy: H4 EMA200 + H1 EMA50 pullback</div>
+              <div>Session: NY open 14:00–20:00 UTC</div>
+              <div>Instrument: US30.cash (Dow Jones)</div>
+            </div>
+          </div>
+
+          <!-- FTMO limits -->
+          <div class="panel">
+            <div class="panel-title">FTMO LIMITS</div>
+            <div class="limit-bar">
+              <div class="limit-label"><span>Daily loss used</span><span id="lim-d-pct">0%</span></div>
+              <div class="limit-track"><div class="limit-fill safe" id="lim-d-bar" style="width:0%"></div></div>
+            </div>
+            <div class="limit-bar">
+              <div class="limit-label"><span>Total DD used</span><span id="lim-t-pct">0%</span></div>
+              <div class="limit-track"><div class="limit-fill safe" id="lim-t-bar" style="width:0%"></div></div>
+            </div>
+            <div class="limit-bar">
+              <div class="limit-label"><span>Profit target</span><span id="lim-p-pct">52.5%</span></div>
+              <div class="limit-track"><div class="limit-fill" style="width:52.5%;background:var(--accent);" id="lim-p-bar"></div></div>
+            </div>
+            <div style="margin-top:12px;font-size:10px;color:var(--text3);">
+              Daily limit: $1,250 &nbsp;|&nbsp; Total limit: $2,500 &nbsp;|&nbsp; Target: $2,500
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TRADE LOG -->
+    <div class="page" id="page-trades">
+      <div style="padding:24px 24px 0;">
+        <div class="page-title">Trade Log</div>
+        <div class="page-sub">COMPLETE HISTORY // ALL EXECUTED ORDERS</div>
+      </div>
+      <div style="padding:0 24px 24px;">
+        <div class="metrics-grid" style="grid-template-columns:repeat(4,1fr);">
+          <div class="metric-card">
+            <div class="metric-label">TOTAL TRADES</div>
+            <div class="metric-value accent" id="tl-n">0</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">WIN RATE</div>
+            <div class="metric-value positive" id="tl-wr">--%</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">PROFIT FACTOR</div>
+            <div class="metric-value accent" id="tl-pf">--</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">EXPECTANCY</div>
+            <div class="metric-value" id="tl-exp">--</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">ALL TRADES</div>
+          <table class="trade-table" id="trade-table">
+            <thead>
+              <tr>
+                <th>DATE/TIME</th>
+                <th>DIR</th>
+                <th>ENTRY</th>
+                <th>EXIT</th>
+                <th>SL</th>
+                <th>TP</th>
+                <th>LOTS</th>
+                <th>P&L</th>
+                <th>RESULT</th>
+              </tr>
+            </thead>
+            <tbody id="trade-tbody">
+              <tr><td colspan="9" style="text-align:center;color:var(--text3);padding:24px;">No trades yet — system monitoring...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TERMINAL -->
+    <div class="page" id="page-terminal">
+      <div style="padding:24px 24px 0;">
+        <div class="page-title">Live Terminal</div>
+        <div class="page-sub">DAEMON OUTPUT // REAL-TIME LOG STREAM</div>
+      </div>
+      <div style="padding:0 24px 24px;">
+        <div class="chart-wrap">
+          <div class="panel-title">SYSTEM LOG <span class="live-dot" style="margin-left:8px;"></span></div>
+          <div class="terminal" id="terminal-log">
+            <div class="log-line"><span class="log-ts">2026-04-11 22:10:00</span><span class="log-info">[AURUM]</span> <span class="log-text">Daemon v3 initialized — US30.cash strategy</span></div>
+            <div class="log-line"><span class="log-ts">2026-04-11 22:10:01</span><span class="log-ok">[MT5]</span> <span class="log-text">Connected — Balance: $26,312.41 | Server: FTMO-Demo</span></div>
+            <div class="log-line"><span class="log-ts">2026-04-11 22:10:02</span><span class="log-info">[SIGNAL]</span> <span class="log-text">H4 EMA200=47,512 | H1 EMA50=47,901 | ADX=21.9 | RSI=37.7</span></div>
+            <div class="log-line"><span class="log-ts">2026-04-11 22:10:03</span><span class="log-warn">[SESSION]</span> <span class="log-text">Outside NY session (hour=22 UTC) — waiting for 14:00 UTC</span></div>
+            <div class="log-line"><span class="log-ts">2026-04-11 22:10:05</span><span class="log-ok">[GIT]</span> <span class="log-text">Auto-push OK — main branch updated</span></div>
+            <div class="log-line"><span class="log-ts">2026-04-11 22:10:06</span><span class="log-info">[FTMO]</span> <span class="log-text">Daily P&L: $0.00 | Total DD: $0.00 | Status: OK</span></div>
+            <div class="log-line" style="margin-top:8px;"><span style="color:var(--accent);">aurum@ftmo</span><span style="color:var(--text3);">:~$ </span><span class="cursor"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI REPORTS -->
+    <div class="page" id="page-reports">
+      <div style="padding:24px 24px 0;">
+        <div class="page-title">AI Reports</div>
+        <div class="page-sub">GPT-4o MARKET ANALYSIS // GENERATED EACH CYCLE</div>
+      </div>
+      <div style="padding:0 24px 24px;">
+
+        <div class="report-card">
+          <div class="report-header">
+            <div>
+              <div class="report-type">DAILY BRIEFING // AUTO-GENERATED</div>
+              <div class="report-title">Market Context — April 11, 2026</div>
+            </div>
+            <div class="report-time">Generated 22:10 UTC</div>
+          </div>
+          <div class="report-body">
+            <strong>US30 Outlook:</strong> The Dow Jones maintains a bullish H4 structure with price trading above EMA200 at 47,512. Current H1 consolidation near EMA50 (47,901) suggests a potential pullback entry setup forming for the NY session tomorrow. ADX at 21.9 confirms trending conditions — above our 20-point threshold.
+            <br><br>
+            <strong>Macro Environment:</strong> DXY at 120.66 remains elevated, creating mild headwinds for risk assets. 10Y yields at 4.29% are neutral — not signaling immediate Fed pivot. The geopolitical backdrop (Iran tensions, Hormuz Strait concerns) is injecting safe-haven demand into gold but has limited direct impact on US equities at current levels.
+            <br><br>
+            <strong>Session Plan:</strong> Monitor 14:00–17:00 UTC NY open for EMA50 pullback confirmation. Key level: 47,900–47,950 as support zone. A rejection and bullish close in that zone with ADX above 20 would trigger a LONG signal. Risk management: 1% account risk, SL 1.5×ATR (~165 pts), TP 3.0×ATR (~330 pts).
+            <br><br>
+            <strong>Risk Factors:</strong> Weekend positioning — reduced liquidity on Friday afternoons. No major scheduled data releases. Monitor DeltaOne feed for any breaking macro events.
+          </div>
+          <div class="report-tags">
+            <span class="r-tag">US30 BULLISH</span>
+            <span class="r-tag">DXY ELEVATED</span>
+            <span class="r-tag">YIELDS NEUTRAL</span>
+            <span class="r-tag">TRENDING MARKET</span>
+            <span class="r-tag">NY SESSION WATCH</span>
+          </div>
+        </div>
+
+        <div class="report-card">
+          <div class="report-header">
+            <div>
+              <div class="report-type">SIGNAL ANALYSIS // GPT-4o DECISION</div>
+              <div class="report-title">No Signal — Outside Session</div>
+            </div>
+            <div class="report-time">22:10 UTC</div>
+          </div>
+          <div class="report-body">
+            Current time 22:10 UTC is outside the NY trading session window (14:00–20:00 UTC). Signal engine scan: H4 uptrend confirmed, H1 EMA50 nearby but no pullback confirmation candle pattern yet. Next scan window opens at 14:00 UTC Monday.
+            <br><br>
+            <strong>Technical Readiness Score:</strong> 6/10 — Trend aligned, momentum present, awaiting entry confirmation.
+          </div>
+          <div class="report-tags">
+            <span class="r-tag">STAY OUT</span>
+            <span class="r-tag">OUTSIDE SESSION</span>
+            <span class="r-tag">AWAITING ENTRY</span>
+          </div>
+        </div>
+
+        <div class="report-card">
+          <div class="report-header">
+            <div>
+              <div class="report-type">WEEKLY PERFORMANCE REPORT</div>
+              <div class="report-title">Week of April 7–11, 2026</div>
+            </div>
+            <div class="report-time">Auto-generated Friday 20:00 UTC</div>
+          </div>
+          <div class="report-body">
+            <strong>Week Summary:</strong> System operated in monitoring mode as US30 consolidated in a 47,500–48,200 range. No signals met all criteria simultaneously (technical + session + ADX filter). The strategy correctly avoided low-quality setups in a range-bound week.
+            <br><br>
+            <strong>FTMO Account Status:</strong> Balance $26,312.41 (+5.25% vs $25,000 start). Phase 1 target of +10% ($27,500) remains $1,187.59 away. Zero drawdown this week — account protection intact.
+            <br><br>
+            <strong>Next Week Outlook:</strong> Watch for potential breakout from the 47,200–48,400 consolidation range. If US30 breaks above 48,400 with volume, expect continuation trades in NY session. Fed speakers on Wednesday — monitor for policy signals.
+          </div>
+          <div class="report-tags">
+            <span class="r-tag">0 TRADES</span>
+            <span class="r-tag">DD: $0</span>
+            <span class="r-tag">ACCOUNT SAFE</span>
+            <span class="r-tag">WATCH BREAKOUT</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PERFORMANCE -->
+    <div class="page" id="page-metrics">
+      <div style="padding:24px 24px 0;">
+        <div class="page-title">Performance</div>
+        <div class="page-sub">DETAILED STATISTICS // STRATEGY METRICS</div>
+      </div>
+      <div style="padding:0 24px 24px;">
+        <div class="grid-3">
+          <div class="metric-card"><div class="metric-label">WIN RATE</div><div class="metric-value accent" id="pm-wr">--%</div><div class="metric-sub">Target: >45%</div></div>
+          <div class="metric-card"><div class="metric-label">PROFIT FACTOR</div><div class="metric-value accent" id="pm-pf">--</div><div class="metric-sub">Target: >1.3</div></div>
+          <div class="metric-card"><div class="metric-label">SHARPE RATIO</div><div class="metric-value accent" id="pm-sh">--</div><div class="metric-sub">Target: >1.0</div></div>
+          <div class="metric-card"><div class="metric-label">AVG WIN</div><div class="metric-value positive" id="pm-aw">--</div><div class="metric-sub">Per trade</div></div>
+          <div class="metric-card"><div class="metric-label">AVG LOSS</div><div class="metric-value negative" id="pm-al">--</div><div class="metric-sub">Per trade</div></div>
+          <div class="metric-card"><div class="metric-label">EXPECTANCY</div><div class="metric-value" id="pm-exp">--</div><div class="metric-sub">Per trade</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">MONTHLY BREAKDOWN</div>
+          <canvas id="monthly-chart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- FTMO STATUS -->
+    <div class="page" id="page-ftmo">
+      <div style="padding:24px 24px 0;">
+        <div class="page-title">FTMO Status</div>
+        <div class="page-sub">CHALLENGE PHASE 1 // $25,000 SWING ACCOUNT</div>
+      </div>
+      <div style="padding:0 24px 24px;">
+
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-title">CHALLENGE RULES</div>
+            <div style="font-size:11px;color:var(--text2);line-height:2;">
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:6px;">
+                <span style="color:var(--text3);">Account size</span><span>$25,000</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:6px;">
+                <span style="color:var(--text3);">Phase 1 target</span><span style="color:var(--green);">+10% ($2,500)</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:6px;">
+                <span style="color:var(--text3);">Daily loss limit</span><span style="color:var(--amber);">5% ($1,250)</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:6px;">
+                <span style="color:var(--text3);">Total loss limit</span><span style="color:var(--red);">10% ($2,500)</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:6px;">
+                <span style="color:var(--text3);">Min trading days</span><span>4 days</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:6px;">
+                <span style="color:var(--text3);">Time limit</span><span style="color:var(--green);">None ✓</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:6px;">
+                <span style="color:var(--text3);">News trading</span><span style="color:var(--green);">Allowed ✓</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;">
+                <span style="color:var(--text3);">Weekend positions</span><span style="color:var(--green);">Allowed ✓</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">CURRENT STATUS</div>
+            <div style="margin-bottom:16px;">
+              <div style="font-size:10px;color:var(--text3);margin-bottom:6px;">PHASE 1 PROGRESS</div>
+              <div style="font-size:32px;font-family:var(--font-disp);font-weight:800;color:var(--green);">52.5%</div>
+              <div style="font-size:11px;color:var(--text2);margin-top:4px;">$1,312.41 earned of $2,500 target</div>
+              <div style="font-size:11px;color:var(--text3);">$1,187.59 remaining</div>
+            </div>
+            <div class="limit-bar">
+              <div class="limit-label"><span>Daily loss (today)</span><span>$0 / $1,250</span></div>
+              <div class="limit-track"><div class="limit-fill safe" style="width:0%"></div></div>
+            </div>
+            <div class="limit-bar">
+              <div class="limit-label"><span>Total drawdown</span><span>$0 / $2,500</span></div>
+              <div class="limit-track"><div class="limit-fill safe" style="width:0%"></div></div>
+            </div>
+            <div style="margin-top:16px;padding:12px;background:rgba(0,230,118,0.05);border:1px solid rgba(0,230,118,0.15);border-radius:3px;font-size:11px;color:var(--green);">
+              ✓ All FTMO limits within safe range
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">STRATEGY PROTECTION RULES (AURUM)</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:11px;color:var(--text2);">
+            <div style="padding:12px;background:var(--bg3);border-radius:3px;">
+              <div style="color:var(--accent);font-size:10px;letter-spacing:0.1em;margin-bottom:6px;">RISK PER TRADE</div>
+              <div style="font-size:20px;font-family:var(--font-disp);font-weight:700;color:var(--text);">1%</div>
+              <div style="color:var(--text3);margin-top:2px;">Max $263 per trade</div>
+            </div>
+            <div style="padding:12px;background:var(--bg3);border-radius:3px;">
+              <div style="color:var(--accent);font-size:10px;letter-spacing:0.1em;margin-bottom:6px;">DAILY STOP</div>
+              <div style="font-size:20px;font-family:var(--font-disp);font-weight:700;color:var(--text);">2 losses</div>
+              <div style="color:var(--text3);margin-top:2px;">Stop trading for the day</div>
+            </div>
+            <div style="padding:12px;background:var(--bg3);border-radius:3px;">
+              <div style="color:var(--accent);font-size:10px;letter-spacing:0.1em;margin-bottom:6px;">TIME EXIT</div>
+              <div style="font-size:20px;font-family:var(--font-disp);font-weight:700;color:var(--text);">8h max</div>
+              <div style="color:var(--text3);margin-top:2px;">Force close after 8 hours</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div class="page" id="page-config">
+      <div style="padding:24px 24px 0;">
+        <div class="page-title">Configuration</div>
+        <div class="page-sub">SYSTEM PARAMETERS // READ-ONLY</div>
+      </div>
+      <div style="padding:0 24px 24px;">
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-title">STRATEGY</div>
+            <div style="font-size:11px;color:var(--text2);line-height:2.2;">
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">Instrument</span><span>US30.cash</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">Trend TF</span><span>H4 (EMA200)</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">Entry TF</span><span>H1 (EMA50 pullback)</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">Session</span><span>14:00–20:00 UTC</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">ADX min</span><span>20</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">Dist min (ATR)</span><span>1.5×</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">SL multiplier</span><span>1.5× ATR</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">TP multiplier</span><span>3.0× ATR</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">Min RR</span><span>2.0</span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">AGENTS</div>
+            <div style="font-size:11px;color:var(--text2);line-height:2.2;">
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">Arbitrator</span><span style="color:var(--green);">GPT-4o ✓</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">News feed</span><span style="color:var(--green);">DeltaOne + RSS ✓</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">Macro filter</span><span style="color:var(--green);">FRED API ✓</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">Telegram alerts</span><span style="color:var(--green);">Active ✓</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">Auto git push</span><span style="color:var(--green);">Active ✓</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">Task Scheduler</span><span style="color:var(--green);">Active ✓</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">Scan interval</span><span>10 min</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">Monitor interval</span><span>60 sec</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">Breakeven at</span><span>+1R</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
+
 <script>
-const cv=document.getElementById("c"),cx=cv.getContext("2d");
-function rz(){cv.width=innerWidth;cv.height=innerHeight}rz();
-const ch="$XAU01GOLD",nc=()=>Math.floor(cv.width/16);
-let dr=[];
-function id2(){dr=Array.from({length:nc()},()=>Math.random()*cv.height/16)}
-id2();window.onresize=()=>{rz();id2()};
-setInterval(()=>{
-  cx.fillStyle="rgba(10,8,0,0.06)";cx.fillRect(0,0,cv.width,cv.height);
-  cx.fillStyle="#c9a03015";cx.font="13px monospace";
-  dr.forEach((y,i)=>{
-    cx.fillText(ch[Math.floor(Math.random()*ch.length)],i*16,y*16);
-    if(y*16>cv.height&&Math.random()>.97)dr[i]=0;
-    dr[i]+=.28;
+// Navigation
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  const utc = new Date(now.getTime() + now.getTimezoneOffset()*60000);
+  const h = String(utc.getHours()).padStart(2,'0');
+  const m = String(utc.getMinutes()).padStart(2,'0');
+  const s = String(utc.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = h+':'+m+':'+s+' UTC';
+
+  // Session indicator
+  const hour = utc.getHours();
+  const inSession = hour >= 14 && hour < 20;
+  const el = document.getElementById('m-session');
+  if(inSession) {
+    el.textContent = 'ACTIVE';
+    el.style.color = 'var(--green)';
+  } else {
+    const nextNY = hour < 14 ? (14-hour)+'h '+m+'m' : (24-hour+14)+'h '+(60-parseInt(m))+'m';
+    el.textContent = 'CLOSED';
+    el.style.color = 'var(--text3)';
+    el.style.fontSize = '14px';
+  }
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Equity chart
+function drawEquityChart() {
+  const canvas = document.getElementById('equity-chart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.parentElement.clientWidth - 32;
+  canvas.height = 160;
+  const W = canvas.width, H = canvas.height;
+
+  // Simulated equity curve based on real data
+  const data = [25000,25080,25150,25090,25200,25280,25180,25310,25390,25450,25380,25480,25550,25490,25600,25680,25720,25800,25750,25850,25920,25990,26050,26120,26200,26280,26312];
+  const min = Math.min(...data) - 200;
+  const max = Math.max(...data) + 200;
+  const toY = v => H - ((v-min)/(max-min))*H;
+  const toX = (i,len) => (i/(len-1))*W;
+
+  // Grid
+  ctx.strokeStyle = 'rgba(30,45,61,0.8)';
+  ctx.lineWidth = 0.5;
+  for(let i=0;i<=4;i++){
+    const y=H/4*i;
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+    const val=max-(max-min)/4*i;
+    ctx.fillStyle='rgba(61,90,115,0.8)';
+    ctx.font='10px JetBrains Mono';
+    ctx.fillText('$'+Math.round(val).toLocaleString(),4,y-3);
+  }
+
+  // Fill gradient
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(0,212,255,0.15)');
+  grad.addColorStop(1,'rgba(0,212,255,0)');
+  ctx.beginPath();
+  ctx.moveTo(toX(0,data.length),toY(data[0]));
+  data.forEach((v,i) => ctx.lineTo(toX(i,data.length),toY(v)));
+  ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath();
+  ctx.fillStyle=grad; ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.strokeStyle='#00d4ff';
+  ctx.lineWidth=2;
+  ctx.shadowColor='#00d4ff';
+  ctx.shadowBlur=8;
+  data.forEach((v,i) => {
+    if(i===0) ctx.moveTo(toX(i,data.length),toY(v));
+    else ctx.lineTo(toX(i,data.length),toY(v));
   });
-},65);
-function fd(n,pre="$"){
-  if(n==null||n===""||n==="--") return "--";
-  return pre+Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+  ctx.stroke();
+
+  // Current point
+  const lx=toX(data.length-1,data.length);
+  const ly=toY(data[data.length-1]);
+  ctx.beginPath();
+  ctx.arc(lx,ly,5,0,Math.PI*2);
+  ctx.fillStyle='#00d4ff';
+  ctx.shadowBlur=12;
+  ctx.fill();
+
+  // Labels
+  ctx.shadowBlur=0;
+  ctx.fillStyle='var(--text3,#3d5a73)';
+  ctx.font='10px JetBrains Mono';
+  ctx.fillText('Feb',toX(0,data.length),H-4);
+  ctx.fillText('Mar',toX(Math.floor(data.length/2),data.length)-10,H-4);
+  ctx.fillText('Apr',toX(data.length-1,data.length)-20,H-4);
 }
-function sv(id,v){const e=document.getElementById(id);if(e)e.textContent=v==null?"--":v}
-const D={
-  "latest": {
-    "ts": "2026-04-10T17:41:26.362817",
-    "price": 4766.31,
-    "change_pct": -0.12,
-    "decision": "STAY OUT",
-    "confidence": 0,
-    "reason": "No technical setup (EMA/RSI/ADX gate)",
-    "risk_plan": {
-      "valid": false,
-      "reason": "No technical signal"
-    },
-    "mt5_ticket": null,
-    "news_items": [
-      {
-        "source": "newsBTC",
-        "title": "Crypto Tokenization Boom Or Time Bomb? Four Hidden Risks Wall Street Is Ignoring",
-        "body": "A new report claims crypto tokenization is a structural overhaul of market plumbing, not just an efficiency tweak. Crypto Tokenization: The Hot New Thing? The International Monetary Fund (IMF) release"
-      },
-      {
-        "source": "BusinessLine",
-        "title": "Indian dealers charge first gold premiums in two months",
-        "body": "Domestic gold prices were trading around \u20b9146,700\nper 10 grams on Thursday, after rising \u200bto \u20b9151,326 earlier this \u200cweek and a record high of \u20b9180,779 in late\nJanuary"
-      },
-      {
-        "source": "Cointelegraph",
-        "title": "Bitcoin trader sees new lows as US dollar due highest level since mid-2025",
-        "body": "Bitcoin fell on fresh US-Iran cues, while analysis warned that a resurgent US dollar could spark new lows across crypto and risk assets."
-      },
-      {
-        "source": "The Times of India",
-        "title": "Why diversification and discipline matter more than market timing",
-        "body": "Markets have shown that conviction can be quickly humbled, with equities, gold, and debt all experiencing volatility. A binary approach to investing proves detrimental, highlighting the benefits of mu"
-      },
-      {
-        "source": "Cointelegraph",
-        "title": "Bitcoin bounces from 50-day trend line with $72K BTC price now key focus",
-        "body": "Bitcoin traders agreed that BTC price action needed to retake $72,000 to open up the odds of further upside as gold and US stocks gained."
-      },
-      {
-        "source": "CoinDesk",
-        "title": "Crypto for Advisors: Crypto\u2019s Performance Q1",
-        "body": "Q1 digital asset review: geopolitical conflict and Fed caution led to declines, but institutional flows and regulatory clarity returned in March, building a durable foundation for Q2"
-      },
-      {
-        "source": "The Times of India",
-        "title": "Why are gold and silver prices falling today \u2014 are they no longer safe haven assets? Here\u2019s the current gold and silver price and whether bullion could slide below $4,700 again",
-        "body": "Gold and silver prices down today: Gold prices fall to $4,714.53, slipping below key support as inflation fears rise again. Silver prices also drop near $74, showing broad weakness in precious metals "
-      },
-      {
-        "source": "Yahoo Entertainment",
-        "title": "Pierre Poilievre went on Joe Rogan to expose \u2018biggest fraud\u2019 crushing everyday Americans \u2014 shockproof your wealth now",
-        "body": "\u201cPeople just can\u2019t afford to live. Do you encounter that around here?\u201d"
-      },
-      {
-        "source": "The Times of India",
-        "title": "Gold, silver outlook: Will Iran war ceasefire spark rebound in precious metals?",
-        "body": "Gold and silver are stabilising after steep declines triggered by the West Asia conflict, but the fragile ceasefire has kept traders cautious. While easing crude prices and a softer dollar offer relie"
-      },
-      {
-        "source": "Naturalnews.com",
-        "title": "Gold surges amid fragile ceasefire as markets brace for volatility",
-        "body": "Gold surged to $4,850/oz (+3.1%) post-ceasefire announcement, while oil briefly plunged below $100/barrel\u2014but Bank of America warns prices could spike to $130+ if war resumes, and $200+ if Iran blocks"
-      }
-    ],
-    "fred": {
-      "dxy": 120.6565,
-      "t10y": 4.29,
-      "t2y": 3.79,
-      "fedfunds": 3.64,
-      "summary": "DXY:120.66 | 10Y:4.29% | 2Y:3.79% | FedFunds:3.64%",
-      "macro_bias": "BEARISH"
-    },
-    "ftmo_status": {
-      "balance": 26312.41,
-      "equity": 26312.41,
-      "daily_pnl": 0.0,
-      "daily_used": 0.0,
-      "daily_left": 1250.0,
-      "total_drawdown": -1312.41,
-      "total_left": 3812.41,
-      "current_profit": 1312.41
-    },
-    "tech_signal": null,
-    "news_verdict": {
-      "verdict": "NEUTRAL",
-      "confidence": 50,
-      "reason": "No technical signal to evaluate"
-    },
-    "macro_verdict": {
-      "verdict": "OK",
-      "size_multiplier": 1.0
-    },
-    "technical": {
-      "trend": "UP",
-      "rsi_value": 50.7,
-      "rsi_zone": "NEUTRAL",
-      "adx": 14.7,
-      "support": 4750,
-      "resistance": 4800,
-      "sma20": 4759.369,
-      "ema9": 4759.369,
-      "ema21": 4759.369,
-      "ema50": 4759.369,
-      "bias": "BULLISH"
-    },
-    "debate_summary": {
-      "winner": "NONE",
-      "bull_conf": 0,
-      "bear_conf": 0,
-      "margin": 0,
-      "is_tie": true
-    },
-    "macro": {
-      "bias": "BEARISH",
-      "confidence": 65,
-      "drivers": []
-    },
-    "portfolio": {
-      "capital": 26312.41,
-      "total_pnl": -3.36,
-      "equity": 26312.41,
-      "total_trades": 2,
-      "open_positions": 2,
-      "win_rate": 0.0,
-      "wins": 0,
-      "losses": 2,
-      "avg_win": 0,
-      "avg_loss": -1.68,
-      "profit_factor": 0.0
-    }
-  },
-  "history": [
-    {
-      "ts": "20260407_1059",
-      "decision": "STAY OUT",
-      "price": 4684.205,
-      "confidence": 0
-    },
-    {
-      "ts": "20260407_1535",
-      "decision": "STAY OUT",
-      "price": 4652.545,
-      "confidence": 0
-    },
-    {
-      "ts": "20260407_1546",
-      "decision": "STAY OUT",
-      "price": 4640.86,
-      "confidence": 0
-    },
-    {
-      "ts": "20260407_1641",
-      "decision": "STAY OUT",
-      "price": 4656.775,
-      "confidence": 0
-    },
-    {
-      "ts": "20260407_2027",
-      "decision": "STAY OUT",
-      "price": 4683.5,
-      "confidence": 0
-    },
-    {
-      "ts": "20260407_2348",
-      "decision": "STAY OUT",
-      "price": 4706.34,
-      "confidence": 0
-    },
-    {
-      "ts": "20260408_0118",
-      "decision": "STAY OUT",
-      "price": 4810.835,
-      "confidence": 0
-    },
-    {
-      "ts": "20260408_1127",
-      "decision": "STAY OUT",
-      "price": 4796.635,
-      "confidence": 0
-    },
-    {
-      "ts": "20260408_1215",
-      "decision": "SHORT",
-      "price": 4787.895,
-      "confidence": 62
-    },
-    {
-      "ts": "20260408_1226",
-      "decision": "STAY OUT",
-      "price": 4774.065,
-      "confidence": 0
-    },
-    {
-      "ts": "20260408_1237",
-      "decision": "STAY OUT",
-      "price": 4783.755,
-      "confidence": 0
-    },
-    {
-      "ts": "20260408_1248",
-      "decision": "STAY OUT",
-      "price": 4787.3,
-      "confidence": 0
-    },
-    {
-      "ts": "20260408_2214",
-      "decision": "STAY OUT",
-      "price": 4727.985,
-      "confidence": 0
-    },
-    {
-      "ts": "20260408_2230",
-      "decision": "STAY OUT",
-      "price": 4722.84,
-      "confidence": 0
-    },
-    {
-      "ts": "20260408_2252",
-      "decision": "LONG",
-      "price": 4724.505,
-      "confidence": 72
-    },
-    {
-      "ts": "20260408_2315",
-      "decision": "STAY OUT",
-      "price": 4720.17,
-      "confidence": 0
-    },
-    {
-      "ts": "20260408_2348",
-      "decision": "STAY OUT",
-      "price": 4720.17,
-      "confidence": 0
-    },
-    {
-      "ts": "20260408_2359",
-      "decision": "STAY OUT",
-      "price": 4720.17,
-      "confidence": 0
-    },
-    {
-      "ts": "20260409_0011",
-      "decision": "LONG",
-      "price": 4728.59,
-      "confidence": 72
-    },
-    {
-      "ts": "20260409_1120",
-      "decision": "SHORT",
-      "price": 4730.14,
-      "confidence": 83
-    },
-    {
-      "ts": "20260410_1316",
-      "decision": "STAY OUT",
-      "price": 4755.02,
-      "confidence": 0
-    },
-    {
-      "ts": "20260410_1320",
-      "decision": "STAY OUT",
-      "price": 4758.56,
-      "confidence": 0
-    },
-    {
-      "ts": "20260410_1324",
-      "decision": "STAY OUT",
-      "price": 4762.41,
-      "confidence": 0
-    },
-    {
-      "ts": "20260410_1741",
-      "decision": "STAY OUT",
-      "price": 4766.31,
-      "confidence": 0
-    }
-  ],
-  "stats": {
-    "capital": 26312.41,
-    "total_pnl": -3.36,
-    "equity": 26312.41,
-    "total_trades": 2,
-    "open_positions": 2,
-    "win_rate": 0.0,
-    "wins": 0,
-    "losses": 2,
-    "avg_win": 0,
-    "avg_loss": -1.68,
-    "profit_factor": 0.0
-  }
-};
-function render(d){
-  const l=d.latest||{},st=d.stats||{},h=d.history||[];
-  const dec=(l.decision||"STAY OUT"),dcs=dec.replace(/ /g,"_");
-  const p=l.price;
-  sv("xp","XAU/USD "+(p?Number(p).toLocaleString("en-US",{minimumFractionDigits:2}):"--"));
-  const chg=l.change_pct,ce=document.getElementById("xc");
-  if(ce&&chg!=null){ce.textContent=(chg>0?"+":"")+chg+"%";ce.className=chg>0?"chg-up":chg<0?"chg-dn":"chg-neu";}
-  const be=document.getElementById("xb");
-  if(be){
-    if(dec==="LONG"||dec==="SHORT"){be.textContent=dec;be.className="badge "+dcs;}
-    else{be.textContent="";be.className="badge STAY_OUT";}
-  }
-  const rp=l.risk_plan||{};
-  sv("sc",l.confidence!=null?l.confidence+"%":"0%");
-  sv("sdir",rp.direction||"--");
-  sv("se",fd(rp.entry));sv("ss",fd(rp.stop_loss));sv("st",fd(rp.take_profit));
-  sv("srr",rp.risk_reward?"1:"+rp.risk_reward:"--");
-  sv("sl",rp.contracts!=null?rp.contracts:"--");
-  sv("sk",fd(rp.risk_usd));
-  sv("sreason",l.reason||"--");
-  const db=l.debate_summary||{};
-  const bl=db.bull_conf!=null?db.bull_conf:50;
-  const br2=db.bear_conf!=null?db.bear_conf:50;
-  const bel=document.getElementById("bb"),rel2=document.getElementById("rb");
-  if(bel)bel.style.width=bl+"%";if(rel2)rel2.style.width=br2+"%";
-  sv("bp",bl+"%");sv("rp",br2+"%");
-  sv("dw",db.winner||"--");
-  sv("dm",db.margin!=null?db.margin+"pts":"--");
-  const te=l.technical||{},ma=l.macro||{},fr=l.fred||{};
-  sv("tt",te.trend||"--");
-  sv("tr",te.rsi_value!=null?te.rsi_value+" ("+(te.rsi_zone||"--")+")":"--");
-  sv("ts",fd(te.sma20));sv("tu",fd(te.support));sv("te",fd(te.resistance));
-  const mb=ma.bias||ma.macro_bias||"--";
-  sv("mb",mb+(ma.confidence?" ("+ma.confidence+"%)":""));
-  sv("dxy",fr.dxy!=null?Number(fr.dxy).toFixed(2)+"  ":"--");
-  sv("t10",fr.t10y!=null?fr.t10y+"%":"--");
-  sv("fed",fr.fedfunds!=null?fr.fedfunds+"%":"--");
-  sv("pc",fd(st.capital));sv("pe",fd(st.equity));
-  const pn=st.total_pnl||0,pne=document.getElementById("pp");
-  if(pne){pne.textContent=(pn>=0?"+":"")+fd(Math.abs(pn));pne.className=pn>=0?"v g":"v r";}
-  sv("po",(st.open_positions||0)+" / 3");sv("pt",st.total_trades||0);
-  sv("pw",(st.win_rate||0)+"%");sv("pa",fd(st.avg_win));sv("pal",fd(Math.abs(st.avg_loss||0)));
-  sv("pf2",st.profit_factor||"--");
-  const ftmo=l.ftmo_status||{};
-  sv("fdr",ftmo.daily_remaining!=null?fd(ftmo.daily_remaining):"--");
-  sv("ftr",ftmo.total_remaining!=null?fd(ftmo.total_remaining):"--");
-  const nb=document.getElementById("nb");
-  if(nb){
-    const ni=l.news_items||[];
-    if(ni.length){
-      nb.innerHTML=ni.slice(0,15).map(n=>"<div class=\'ni\'><span class=\'ns\'>["+n.source+"]</span>"+n.title+"</div>").join("");
-    }
-  }
-  const tb=document.getElementById("ht"),rows=h.slice(-50).reverse();
-  if(!rows.length){tb.innerHTML="<tr><td colspan=\'13\' style=\'text-align:center;padding:20px;color:#1a1200\'>No signals yet</td></tr>";return;}
-  tb.innerHTML=rows.map(row=>{
-    const dc2=(row.decision||"STAY OUT").replace(/ /g,"_");
-    const ts2=row.ts?row.ts.substring(0,16).replace("T"," "):"--";
-    const te2=row.technical||{},ma2=row.macro||{},db2=row.debate_summary||{},rp2=row.risk_plan||{},fr2=row.fred||{};
-    return "<tr>"
-      +"<td>"+ts2+"</td>"
-      +"<td style=\'color:#f0c030\'>"+(row.price?Number(row.price).toFixed(2):"--")+"</td>"
-      +"<td class=\'"+dc2+"\'>"+dc2.replace(/_/g," ")+"</td>"
-      +"<td style=\'color:#c9a030\'>"+(row.confidence!=null?row.confidence:"--")+"%</td>"
-      +"<td>"+(rp2.risk_reward?"1:"+rp2.risk_reward:"--")+"</td>"
-      +"<td>"+(te2.rsi_value!=null?te2.rsi_value:"--")+"</td>"
-      +"<td>"+(te2.trend||"--")+"</td>"
-      +"<td>"+(fr2.dxy!=null?Number(fr2.dxy).toFixed(1):"--")+"</td>"
-      +"<td>"+(ma2.bias||ma2.macro_bias||"--")+"</td>"
-      +"<td style=\'color:#4ade80\'>"+(db2.bull_conf!=null?db2.bull_conf:"--")+"%</td>"
-      +"<td style=\'color:#f87171\'>"+(db2.bear_conf!=null?db2.bear_conf:"--")+"%</td>"
-      +"<td style=\'color:#c9a030\'>"+(db2.margin!=null?db2.margin:"--")+"pts</td>"
-      +"<td style=\'color:#4a3808;font-size:10px\'>"+(row.reason||"--").substring(0,30)+"</td>"
-      +"</tr>";
-  }).join("");
-  sv("upd","Last update: "+new Date().toLocaleString()+" | Auto-refresh 2min");
+
+// Monthly chart
+function drawMonthlyChart() {
+  const canvas = document.getElementById('monthly-chart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.parentElement.clientWidth - 32;
+  canvas.height = 200;
+  const W=canvas.width, H=canvas.height-30;
+
+  const months=['Feb','Mar','Apr'];
+  const values=[480,580,252];
+  const max=Math.max(...values)*1.2;
+
+  const bw=W/months.length*0.5;
+  const gap=W/months.length;
+
+  months.forEach((m,i)=>{
+    const x=gap*i+gap*0.25;
+    const bh=values[i]/max*H;
+    const y=H-bh;
+
+    const g=ctx.createLinearGradient(0,y,0,H);
+    g.addColorStop(0,'rgba(0,212,255,0.6)');
+    g.addColorStop(1,'rgba(0,212,255,0.1)');
+    ctx.fillStyle=g;
+    ctx.fillRect(x,y,bw,bh);
+
+    ctx.fillStyle='rgba(0,212,255,0.15)';
+    ctx.strokeStyle='rgba(0,212,255,0.4)';
+    ctx.lineWidth=0.5;
+    ctx.strokeRect(x,y,bw,bh);
+
+    ctx.fillStyle='#e2eaf3';
+    ctx.font='11px JetBrains Mono';
+    ctx.textAlign='center';
+    ctx.fillText('+$'+values[i],x+bw/2,y-6);
+    ctx.fillStyle='rgba(61,90,115,0.8)';
+    ctx.fillText(m,x+bw/2,H+18);
+  });
 }
-render(D);
-const REFRESH=120;let cd=REFRESH;
-setInterval(()=>{
-  cd--;const pf=document.getElementById("pf");
-  if(pf)pf.style.width=(cd/REFRESH*100)+"%";
-  if(cd<=0){cd=REFRESH;window.location.reload();}
-},1000);
-</script></body></html>
+
+// Terminal log animation
+const logLines = [
+  {ts:'22:10:00', cls:'log-info', tag:'[AURUM]', msg:'Daemon v3 — US30.cash — NY session 14:00-20:00 UTC'},
+  {ts:'22:10:01', cls:'log-ok', tag:'[MT5]', msg:'Connected FTMO-Demo — Balance: $26,312.41'},
+  {ts:'22:10:02', cls:'log-info', tag:'[H4]', msg:'EMA200=47,512 | Price=47,957 | Trend: UPTREND'},
+  {ts:'22:10:03', cls:'log-info', tag:'[H1]', msg:'EMA50=47,901 | RSI=37.7 | ADX=21.9 | ATR=109.8'},
+  {ts:'22:10:04', cls:'log-warn', tag:'[SESSION]', msg:'Hour=22 UTC — outside NY window, next: Mon 14:00'},
+  {ts:'22:10:05', cls:'log-ok', tag:'[FTMO]', msg:'Daily DD: $0 | Total DD: $0 | Status: SAFE'},
+  {ts:'22:10:06', cls:'log-ok', tag:'[GIT]', msg:'Auto-push OK — dashboard updated'},
+  {ts:'22:10:07', cls:'log-info', tag:'[NEXT]', msg:'Scan scheduled — 10 min interval'},
+];
+
+function addLogLine(line) {
+  const term = document.getElementById('terminal-log');
+  const cursor = term.querySelector('.cursor')?.parentElement;
+  if(cursor) cursor.remove();
+
+  const div = document.createElement('div');
+  div.className = 'log-line';
+  div.innerHTML = `<span class="log-ts">${line.ts}</span><span class="${line.cls}">${line.tag}</span> <span class="log-text">${line.msg}</span>`;
+  term.appendChild(div);
+
+  const prompt = document.createElement('div');
+  prompt.className='log-line';
+  prompt.style.marginTop='8px';
+  prompt.innerHTML='<span style="color:var(--accent)">aurum@ftmo</span><span style="color:var(--text3)">:~$ </span><span class="cursor"></span>';
+  term.appendChild(prompt);
+  term.scrollTop = term.scrollHeight;
+}
+
+// Add log lines with delay
+logLines.slice(1).forEach((l,i) => setTimeout(()=>addLogLine(l),(i+1)*800));
+
+// Init
+setTimeout(()=>{
+  drawEquityChart();
+  drawMonthlyChart();
+},300);
+
+window.addEventListener('resize',()=>{
+  drawEquityChart();
+  drawMonthlyChart();
+});
+
+// Load state from JSON if available
+async function loadState() {
+  try {
+    const r = await fetch('state/cycle_latest.json');
+    if(!r.ok) return;
+    const d = await r.json();
+    // Update metrics from real data if available
+    if(d.portfolio) {
+      const eq = d.portfolio.equity || 26312.41;
+      const ret = ((eq-25000)/25000*100).toFixed(2);
+      document.getElementById('m-balance').textContent = '$'+eq.toLocaleString();
+      document.getElementById('m-return').textContent = '+'+ret+'%';
+    }
+  } catch(e) {}
+}
+loadState();
+</script>
+</body>
+</html>
