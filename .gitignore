@@ -1,8 +1,8 @@
-﻿.env
+.env
 __pycache__/
 *.pyc
 logs/
-state/
+state/__pycache__/
 integrate_apis.py
 p1_env.py
 p2_ftmo.py
@@ -18,3 +18,7 @@ patch*.py
 go.py
 w.py
 master_build.py
+
+# Allow state JSONs for dashboard
+!state/*.json
+
