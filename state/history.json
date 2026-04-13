@@ -154,5 +154,11 @@
     "decision": "STAY OUT",
     "price": null,
     "confidence": 0
+  },
+  {
+    "ts": "20260413_1914",
+    "decision": "STAY OUT",
+    "price": null,
+    "confidence": 0
   }
 ]

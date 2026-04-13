@@ -1,0 +1,131 @@
+{
+  "ts": "2026-04-10T13:20:25.168695",
+  "price": 4758.56,
+  "change_pct": -0.28,
+  "decision": "STAY OUT",
+  "confidence": 0,
+  "reason": "No technical setup (EMA/RSI/ADX gate)",
+  "risk_plan": {
+    "valid": false,
+    "reason": "No technical signal"
+  },
+  "mt5_ticket": null,
+  "news_items": [
+    {
+      "source": "newsBTC",
+      "title": "Crypto Tokenization Boom Or Time Bomb? Four Hidden Risks Wall Street Is Ignoring",
+      "body": "A new report claims crypto tokenization is a structural overhaul of market plumbing, not just an efficiency tweak. Crypto Tokenization: The Hot New Thing? The International Monetary Fund (IMF) release"
+    },
+    {
+      "source": "BusinessLine",
+      "title": "Indian dealers charge first gold premiums in two months",
+      "body": "Domestic gold prices were trading around \u20b9146,700\nper 10 grams on Thursday, after rising \u200bto \u20b9151,326 earlier this \u200cweek and a record high of \u20b9180,779 in late\nJanuary"
+    },
+    {
+      "source": "Cointelegraph",
+      "title": "Bitcoin trader sees new lows as US dollar due highest level since mid-2025",
+      "body": "Bitcoin fell on fresh US-Iran cues, while analysis warned that a resurgent US dollar could spark new lows across crypto and risk assets."
+    },
+    {
+      "source": "The Times of India",
+      "title": "Why diversification and discipline matter more than market timing",
+      "body": "Markets have shown that conviction can be quickly humbled, with equities, gold, and debt all experiencing volatility. A binary approach to investing proves detrimental, highlighting the benefits of mu"
+    },
+    {
+      "source": "Cointelegraph",
+      "title": "Bitcoin bounces from 50-day trend line with $72K BTC price now key focus",
+      "body": "Bitcoin traders agreed that BTC price action needed to retake $72,000 to open up the odds of further upside as gold and US stocks gained."
+    },
+    {
+      "source": "The Times of India",
+      "title": "Gold, silver outlook: Will Iran war ceasefire spark rebound in precious metals?",
+      "body": "Gold and silver are stabilising after steep declines triggered by the West Asia conflict, but the fragile ceasefire has kept traders cautious. While easing crude prices and a softer dollar offer relie"
+    },
+    {
+      "source": "Naturalnews.com",
+      "title": "Gold surges amid fragile ceasefire as markets brace for volatility",
+      "body": "Gold surged to $4,850/oz (+3.1%) post-ceasefire announcement, while oil briefly plunged below $100/barrel\u2014but Bank of America warns prices could spike to $130+ if war resumes, and $200+ if Iran blocks"
+    },
+    {
+      "source": "Naturalnews.com",
+      "title": "France Completes Withdrawal of Gold Holdings from New York Federal Reserve",
+      "body": "France Completes Withdrawal of Gold Holdings from New York Federal Reserve The French Treasury has confirmed the completion of its multi-year operation to repatriate all its gold reserves held at the "
+    },
+    {
+      "source": "CryptoSlate",
+      "title": "Bitcoin rebounds as oil cools but Trump impeachment odds show markets still on edge",
+      "body": "Polymarket put the odds of President Donald Trump being impeached before his term ends at 64% on Apr. 7, near the contract's high-water mark since its Mar. 19 launch. A comparable Kalshi contract, whi"
+    },
+    {
+      "source": "Federalreserve.gov",
+      "title": "FEDS Note: India and the Global Economy",
+      "body": "Patrice RobitailleWith a population of 1.4 billion, India is the world's most populous country. It is also now the world's fastest growing economy and is currently the 5th largest economy measured at "
+    }
+  ],
+  "fred": {
+    "dxy": 120.6565,
+    "t10y": 4.29,
+    "t2y": 3.79,
+    "fedfunds": 3.64,
+    "summary": "DXY:120.66 | 10Y:4.29% | 2Y:3.79% | FedFunds:3.64%",
+    "macro_bias": "BEARISH"
+  },
+  "ftmo_status": {
+    "balance": 26312.41,
+    "equity": 26312.41,
+    "daily_pnl": 0.0,
+    "daily_used": 0.0,
+    "daily_left": 1250.0,
+    "total_drawdown": -1312.41,
+    "total_left": 3812.41,
+    "current_profit": 1312.41
+  },
+  "tech_signal": null,
+  "news_verdict": {
+    "verdict": "NEUTRAL",
+    "confidence": 50,
+    "reason": "No technical signal to evaluate"
+  },
+  "macro_verdict": {
+    "verdict": "VETO",
+    "size_multiplier": 1.0
+  },
+  "technical": {
+    "trend": "DOWN",
+    "rsi_value": 46.5,
+    "rsi_zone": "NEUTRAL",
+    "adx": 13.7,
+    "support": 4750,
+    "resistance": 4800,
+    "sma20": 4760.289,
+    "ema9": 4760.289,
+    "ema21": 4760.289,
+    "ema50": 4760.289,
+    "bias": "BEARISH"
+  },
+  "debate_summary": {
+    "winner": "NONE",
+    "bull_conf": 0,
+    "bear_conf": 0,
+    "margin": 0,
+    "is_tie": true
+  },
+  "macro": {
+    "bias": "BEARISH",
+    "confidence": 65,
+    "drivers": []
+  },
+  "portfolio": {
+    "capital": 26312.41,
+    "total_pnl": -3.36,
+    "equity": 26312.41,
+    "total_trades": 2,
+    "open_positions": 2,
+    "win_rate": 0.0,
+    "wins": 0,
+    "losses": 2,
+    "avg_win": 0,
+    "avg_loss": -1.68,
+    "profit_factor": 0.0
+  }
+}

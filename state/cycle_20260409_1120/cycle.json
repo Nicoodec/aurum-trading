@@ -1,0 +1,164 @@
+{
+  "ts": "2026-04-09T11:20:21.405498",
+  "price": 4730.14,
+  "change_pct": 0.06,
+  "decision": "SHORT",
+  "confidence": 83,
+  "reason": "Technical: PULLBACK_EMA21 SHORT (conf=85%) | News: CONFIRM (conf=80%) | The DXY is at 120.7, indicating a very strong dollar which is bearish for gold. Additionally, the moderate yields at 4.33% and a normal yield curve spread of 0.52% further support a bearish outlook for gold prices. Overall, the macro conditions strongly favor a short position on XAU/USD.",
+  "risk_plan": {
+    "valid": true,
+    "direction": "SHORT",
+    "entry": 4730.14,
+    "stop_loss": 5000.26,
+    "take_profit": 4189.9,
+    "sl_distance": 270.12,
+    "tp_distance": 540.24,
+    "risk_reward": 2.0,
+    "win_probability": 0.0,
+    "kelly_fraction": 0,
+    "risk_usd": 0.0,
+    "contracts": 0.01,
+    "margin_needed": 157.67,
+    "atr_used": 180.08,
+    "debate_margin": 100,
+    "balance_used": 25093.93
+  },
+  "mt5_ticket": 422004275,
+  "news_items": [
+    {
+      "source": "BBC Business",
+      "title": "Oil prices rise as concerns grow over 'fragile' US-Iran ceasefire"
+    },
+    {
+      "source": "BBC Business",
+      "title": "Farmers warn of higher food costs due to Iran war"
+    },
+    {
+      "source": "BBC Business",
+      "title": "Iran Strait of Hormuz warning adds to shipping uncertainty"
+    },
+    {
+      "source": "BBC Business",
+      "title": "Why fuel and food prices could still be affected for months"
+    },
+    {
+      "source": "BBC Business",
+      "title": "Faisal Islam: Iran war pause is welcome but the economic scars will last"
+    },
+    {
+      "source": "MarketWatch",
+      "title": "Elon Musk in a post on X says some of his Trump posts &#x2018;went too far&#x2019; and that he regre"
+    },
+    {
+      "source": "MarketWatch",
+      "title": "Swiss National Bank cuts interest rates by a half point to 0.5%"
+    },
+    {
+      "source": "MarketWatch",
+      "title": "Dollar jumps 0.5% to 0.8890 francs"
+    },
+    {
+      "source": "FXStreet Gold",
+      "title": "Oil: Ceasefire fragility tempers price reaction \u2013 Rabobank"
+    },
+    {
+      "source": "FXStreet Gold",
+      "title": "USD/INR recovers strongly amid concerns over Iran ceasefire's sustainability"
+    }
+  ],
+  "fred": {
+    "dxy": 120.6565,
+    "t10y": 4.33,
+    "t2y": 3.81,
+    "fedfunds": 3.64,
+    "summary": "DXY:120.66 | 10Y:4.33% | 2Y:3.81% | FedFunds:3.64%",
+    "macro_bias": "BEARISH"
+  },
+  "ftmo_status": {
+    "balance": 25093.93,
+    "equity": 25093.93,
+    "daily_pnl": 0.0,
+    "daily_used": 0.0,
+    "daily_left": 1250.0,
+    "total_drawdown": -93.93,
+    "total_left": 2593.93,
+    "current_profit": 93.93
+  },
+  "tech_signal": {
+    "signal": "SHORT",
+    "sig_type": "PULLBACK_EMA21",
+    "confidence": 85,
+    "reason": "Pullback EMA21 downtrend | RSI=53.7 ADX=40.1",
+    "price": 4731.0,
+    "sl_dist": 272.79,
+    "tp_dist": 545.58,
+    "rr": 2.0,
+    "rsi": 53.7,
+    "ema9": 4679.57,
+    "ema21": 4729.36,
+    "ema50": 4772.65,
+    "sma20": 4689.64,
+    "atr": 181.86,
+    "adx": 40.1,
+    "bb_up": 5111.03,
+    "bb_lo": 4268.25,
+    "trend_fast": "DOWN",
+    "trend_mid": "DOWN",
+    "trend_slow": "DOWN",
+    "dist_ema9": 0.28,
+    "dist_ema21": 0.01,
+    "dist_sma20": 0.23,
+    "ext_up": false,
+    "ext_dn": false,
+    "trending": true,
+    "strong_trend": true,
+    "chg": 0.08
+  },
+  "news_verdict": {
+    "verdict": "CONFIRM",
+    "confidence": 80,
+    "reason": "The DXY is at 120.7, indicating a very strong dollar which is bearish for gold. Additionally, the moderate yields at 4.33% and a normal yield curve spread of 0.52% further support a bearish outlook for gold prices. Overall, the macro conditions strongly favor a short position on XAU/USD."
+  },
+  "macro_verdict": {
+    "verdict": "OK",
+    "size_multiplier": 1.0
+  },
+  "technical": {
+    "trend": "DOWN",
+    "rsi_value": 53.7,
+    "rsi_zone": "NEUTRAL",
+    "adx": 40.1,
+    "support": 4700,
+    "resistance": 4750,
+    "sma20": 4689.64,
+    "ema9": 4679.57,
+    "ema21": 4729.36,
+    "ema50": 4772.65,
+    "bias": "BEARISH"
+  },
+  "debate_summary": {
+    "winner": "SHORT",
+    "bull_conf": 85,
+    "bear_conf": 0,
+    "margin": 100,
+    "is_tie": false
+  },
+  "macro": {
+    "bias": "BEARISH",
+    "confidence": 65,
+    "drivers": []
+  },
+  "portfolio": {
+    "capital": 25093.93,
+    "total_pnl": 0,
+    "equity": 25093.93,
+    "total_trades": 1,
+    "open_positions": 2,
+    "win_rate": 0.0,
+    "wins": 0,
+    "losses": 1,
+    "avg_win": 0,
+    "avg_loss": 0.0,
+    "profit_factor": 0
+  }
+}
